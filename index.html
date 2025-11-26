@@ -1,2549 +1,2802 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>🎓 Умный журнал 3 курс</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <style>
-    :root {
-      --primary: #FFB6C1;
-      --primary-dark: #FF9AA2;
-      --secondary: #B5EAD7;
-      --secondary-dark: #8FD3C1;
-      --accent: #C7CEEA;
-      --accent-dark: #A5B4FC;
-      --light: #FFF8F8;
-      --dark: #5D5D5D;
-      --success: #A2E1D6;
-      --warning: #FFDAC1;
-      --danger: #FF9AA2;
-      --gray: #9E9E9E;
-      --card-bg: rgba(255, 255, 255, 0.9);
-      --sidebar-bg: linear-gradient(135deg, #B5EAD7 0%, #C7CEEA 100%);
-      --sidebar-text: #5D5D5D;
-      --shadow-soft: 0 8px 25px rgba(0, 0, 0, 0.08);
-      --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.12);
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body {
-      font-family: 'Quicksand', sans-serif;
-      background: linear-gradient(-45deg, #FFB6C1, #B5EAD7, #C7CEEA, #FFDAC1);
-      background-size: 400% 400%;
-      animation: gradient 15s ease infinite;
-      color: var(--dark);
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    
-    @keyframes gradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-    
-    .app-container {
-      display: flex;
-      min-height: 100vh;
-      backdrop-filter: blur(5px);
-    }
-    
-    /* Sidebar Styles */
-    .sidebar {
-      width: 280px;
-      background: var(--sidebar-bg);
-      color: var(--sidebar-text);
-      padding: 2rem 1.5rem;
-      box-shadow: var(--shadow-soft);
-      z-index: 100;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .sidebar::before {
-      content: "";
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
-      transform: rotate(30deg);
-    }
-    
-    .logo {
-      display: flex;
-      align-items: center;
-      margin-bottom: 2.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid rgba(93, 93, 93, 0.1);
-      position: relative;
-      z-index: 1;
-    }
-    
-    .logo-icon {
-      width: 50px;
-      height: 50px;
-      background: var(--primary);
-      border-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 15px;
-      font-weight: bold;
-      font-size: 22px;
-      color: white;
-      box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4);
-      transform: rotate(-5deg);
-      transition: transform 0.3s ease;
-    }
-    
-    .logo:hover .logo-icon {
-      transform: rotate(0deg) scale(1.1);
-    }
-    
-    .logo-text {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 1.3rem;
-      background: linear-gradient(45deg, #5D5D5D, #FF9AA2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .nav-links {
-      list-style: none;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .nav-item {
-      margin-bottom: 0.8rem;
-      transform: translateX(-10px);
-      opacity: 0;
-      animation: slideIn 0.5s ease forwards;
-    }
-    
-    .nav-item:nth-child(1) { animation-delay: 0.1s; }
-    .nav-item:nth-child(2) { animation-delay: 0.2s; }
-    .nav-item:nth-child(3) { animation-delay: 0.3s; }
-    .nav-item:nth-child(4) { animation-delay: 0.4s; }
-    .nav-item:nth-child(5) { animation-delay: 0.5s; }
-    .nav-item:nth-child(6) { animation-delay: 0.6s; }
-    
-    @keyframes slideIn {
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    
-    .nav-link {
-      display: flex;
-      align-items: center;
-      padding: 0.9rem 1.2rem;
-      color: var(--sidebar-text);
-      text-decoration: none;
-      border-radius: 12px;
-      transition: all 0.4s ease;
-      font-weight: 600;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .nav-link::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      transition: left 0.5s;
-    }
-    
-    .nav-link:hover::before {
-      left: 100%;
-    }
-    
-    .nav-link:hover, .nav-link.active {
-      background: rgba(255, 255, 255, 0.7);
-      color: var(--dark);
-      transform: translateX(10px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .nav-link i {
-      margin-right: 15px;
-      font-size: 1.3rem;
-      transition: transform 0.3s ease;
-    }
-    
-    .nav-link:hover i {
-      transform: scale(1.2);
-    }
-    
-    /* Main Content Styles */
-    .main-content {
-      flex: 1;
-      padding: 2rem;
-      overflow-y: auto;
-      position: relative;
-    }
-    
-    .floating-elements {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-    
-    .floating-element {
-      position: absolute;
-      border-radius: 50%;
-      opacity: 0.1;
-      animation: float 20s infinite linear;
-    }
-    
-    .floating-element:nth-child(1) {
-      width: 100px;
-      height: 100px;
-      background: var(--primary);
-      top: 10%;
-      left: 5%;
-      animation-delay: 0s;
-    }
-    
-    .floating-element:nth-child(2) {
-      width: 150px;
-      height: 150px;
-      background: var(--secondary);
-      top: 60%;
-      left: 80%;
-      animation-delay: -5s;
-    }
-    
-    .floating-element:nth-child(3) {
-      width: 70px;
-      height: 70px;
-      background: var(--accent);
-      top: 20%;
-      left: 80%;
-      animation-delay: -10s;
-    }
-    
-    .floating-element:nth-child(4) {
-      width: 120px;
-      height: 120px;
-      background: var(--warning);
-      top: 70%;
-      left: 10%;
-      animation-delay: -15s;
-    }
-    
-    @keyframes float {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      33% { transform: translate(30px, -50px) rotate(120deg); }
-      66% { transform: translate(-20px, 20px) rotate(240deg); }
-      100% { transform: translate(0, 0) rotate(360deg); }
-    }
-    
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      position: relative;
-      z-index: 1;
-    }
-    
-    .page-title {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 2.2rem;
-      color: var(--dark);
-      position: relative;
-      display: inline-block;
-    }
-    
-    .page-title::after {
-      content: "";
-      position: absolute;
-      bottom: -5px;
-      left: 0;
-      width: 50%;
-      height: 4px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      border-radius: 2px;
-    }
-    
-    .user-info {
-      display: flex;
-      align-items: center;
-      background: var(--card-bg);
-      padding: 0.7rem 1.5rem;
-      border-radius: 50px;
-      box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .user-info::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.5), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.6s;
-    }
-    
-    .user-info:hover::before {
-      transform: translateX(100%);
-    }
-    
-    .user-info:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .user-avatar {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      margin-right: 12px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Card Styles */
-    .card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      box-shadow: var(--shadow-soft);
-      padding: 2rem;
-      margin-bottom: 2rem;
-      transition: all 0.4s ease;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      position: relative;
-      z-index: 1;
-      overflow: hidden;
-    }
-    
-    .card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 5px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-    }
-    
-    .card:hover {
-      transform: translateY(-10px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(93, 93, 93, 0.1);
-    }
-    
-    .card-title {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 600;
-      font-size: 1.5rem;
-      color: var(--dark);
-      position: relative;
-      display: inline-block;
-    }
-    
-    .card-title::after {
-      content: "";
-      position: absolute;
-      bottom: -8px;
-      left: 0;
-      width: 30px;
-      height: 3px;
-      background: var(--primary);
-      border-radius: 2px;
-    }
-    
-    /* Button Styles */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.8rem 1.7rem;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.4s ease;
-      font-family: 'Quicksand', sans-serif;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .btn::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      transition: left 0.5s;
-    }
-    
-    .btn:hover::before {
-      left: 100%;
-    }
-    
-    .btn i {
-      margin-right: 10px;
-      transition: transform 0.3s ease;
-    }
-    
-    .btn:hover i {
-      transform: scale(1.2);
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4);
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(255, 182, 193, 0.6);
-    }
-    
-    .btn-secondary {
-      background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-      color: var(--dark);
-      box-shadow: 0 5px 15px rgba(181, 234, 215, 0.4);
-    }
-    
-    .btn-secondary:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(181, 234, 215, 0.6);
-    }
-    
-    .btn-outline {
-      background: transparent;
-      color: var(--primary);
-      border: 2px solid var(--primary);
-    }
-    
-    .btn-outline:hover {
-      background: rgba(255, 182, 193, 0.1);
-      transform: translateY(-5px);
-    }
-    
-    .btn-danger {
-      background: linear-gradient(135deg, var(--danger), #FF7B86);
-      color: white;
-      box-shadow: 0 5px 15px rgba(255, 154, 162, 0.4);
-    }
-    
-    .btn-danger:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(255, 154, 162, 0.6);
-    }
-    
-    .btn-success {
-      background: linear-gradient(135deg, var(--success), #8BD3C7);
-      color: var(--dark);
-      box-shadow: 0 5px 15px rgba(162, 225, 214, 0.4);
-    }
-    
-    .btn-success:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(162, 225, 214, 0.6);
-    }
-    
-    .btn-group {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    
-    /* Form Styles */
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-    
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: var(--dark);
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: 0.9rem 1.2rem;
-      border: 2px solid rgba(181, 234, 215, 0.5);
-      border-radius: 10px;
-      font-family: 'Quicksand', sans-serif;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      background: rgba(255, 255, 255, 0.8);
-    }
-    
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.3);
-      transform: translateY(-2px);
-    }
-    
-    .form-row {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-    
-    .form-col {
-      flex: 1;
-    }
-    
-    /* Table Styles */
-    .table-container {
-      overflow-x: auto;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
-    
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 15px;
-      overflow: hidden;
-    }
-    
-    .table th {
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      color: white;
-      padding: 1.2rem;
-      text-align: left;
-      font-weight: 600;
-    }
-    
-    .table td {
-      padding: 1.2rem;
-      border-bottom: 1px solid #f0f0f0;
-      transition: all 0.3s ease;
-    }
-    
-    .table tbody tr:hover {
-      background: rgba(181, 234, 215, 0.2);
-      transform: scale(1.01);
-    }
-    
-    .table tbody tr.selected {
-      background: rgba(181, 234, 215, 0.4);
-    }
-    
-    /* Stats Cards */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    
-    .stat-card {
-      background: var(--card-bg);
-      border-radius: 15px;
-      padding: 1.8rem;
-      box-shadow: var(--shadow-soft);
-      text-align: center;
-      transition: all 0.4s ease;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .stat-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 5px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-10px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .stat-icon {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.2rem;
-      font-size: 1.8rem;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-    
-    .stat-icon.primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-    }
-    
-    .stat-icon.success {
-      background: linear-gradient(135deg, var(--success), #8BD3C7);
-      color: white;
-    }
-    
-    .stat-icon.warning {
-      background: linear-gradient(135deg, var(--warning), #FFB692);
-      color: white;
-    }
-    
-    .stat-icon.danger {
-      background: linear-gradient(135deg, var(--danger), #FF7B86);
-      color: white;
-    }
-    
-    .stat-value {
-      font-size: 2.2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(45deg, var(--dark), var(--primary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    
-    .stat-label {
-      color: var(--gray);
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-    
-    /* Chart Container */
-    .chart-container {
-      background: var(--card-bg);
-      border-radius: 15px;
-      padding: 1.8rem;
-      box-shadow: var(--shadow-soft);
-      margin-bottom: 2rem;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    /* File Upload */
-    .file-upload {
-      border: 2px dashed #e0e0e0;
-      border-radius: 15px;
-      padding: 3rem;
-      text-align: center;
-      transition: all 0.4s ease;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.7);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .file-upload::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.5), transparent);
-      transform: translateX(-100%);
-      transition: transform 0.6s;
-    }
-    
-    .file-upload:hover::before {
-      transform: translateX(100%);
-    }
-    
-    .file-upload:hover {
-      border-color: var(--primary);
-      background: rgba(255, 182, 193, 0.1);
-      transform: translateY(-5px);
-    }
-    
-    .file-upload i {
-      font-size: 3.5rem;
-      color: var(--primary);
-      margin-bottom: 1.2rem;
-    }
-    
-    /* About Section */
-    .about-container {
-      display: flex;
-      gap: 2.5rem;
-      align-items: center;
-    }
-    
-    .developer-photo {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 5px solid var(--primary);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: all 0.4s ease;
-    }
-    
-    .developer-photo:hover {
-      transform: scale(1.05);
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-    }
-    
-    .developer-info {
-      flex: 1;
-    }
-    
-    /* Footer */
-    .footer {
-      text-align: center;
-      padding: 2rem 0;
-      color: var(--gray);
-      font-size: 0.9rem;
-      margin-top: 2rem;
-      border-top: 1px solid rgba(93, 93, 93, 0.1);
-      position: relative;
-      z-index: 1;
-    }
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🎓 Умный журнал 3 курс</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #FFB6C1;
+            --primary-dark: #FF9AA2;
+            --secondary: #B5EAD7;
+            --secondary-dark: #8FD3C1;
+            --accent: #C7CEEA;
+            --accent-dark: #A5B4FC;
+            --light: #FFF8F8;
+            --dark: #5D5D5D;
+            --success: #A2E1D6;
+            --warning: #FFDAC1;
+            --danger: #FF9AA2;
+            --gray: #9E9E9E;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --sidebar-bg: linear-gradient(135deg, #B5EAD7 0%, #C7CEEA 100%);
+            --sidebar-text: #5D5D5D;
+            --shadow-soft: 0 8px 25px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
 
-    /* НОВЫЕ СТИЛИ ДЛЯ ГРАФИКОВ */
-    .charts-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    
-    .chart-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      flex-wrap: wrap;
-    }
-    
-    .chart-tab {
-      padding: 0.7rem 1.5rem;
-      background: rgba(255, 255, 255, 0.7);
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-family: 'Quicksand', sans-serif;
-      font-weight: 600;
-      color: var(--dark);
-    }
-    
-    .chart-tab.active {
-      background: var(--primary);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4);
-    }
-    
-    .chart-tab:hover:not(.active) {
-      background: rgba(255, 182, 193, 0.2);
-      transform: translateY(-2px);
-    }
-    
-    .chart-wrapper {
-      background: var(--card-bg);
-      border-radius: 20px;
-      padding: 1.5rem;
-      box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .chart-wrapper::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 5px;
-      background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-    }
-    
-    .chart-wrapper:hover {
-      transform: translateY(-5px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .chart-title {
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 600;
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      color: var(--dark);
-      text-align: center;
-    }
-    
-    .chart-comparison {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    
-    .comparison-item {
-      flex: 1;
-      text-align: center;
-      padding: 1rem;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 10px;
-      border-left: 4px solid var(--primary);
-    }
-    
-    .comparison-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      font-family: 'Montserrat', sans-serif;
-    }
-    
-    .comparison-label {
-      font-size: 0.8rem;
-      color: var(--gray);
-      margin-top: 0.3rem;
-    }
-    
-    .subject-performance {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-      margin-top: 1rem;
-    }
-    
-    .subject-bar {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    
-    .subject-name {
-      min-width: 120px;
-      font-weight: 500;
-    }
-    
-    .subject-progress {
-      flex: 1;
-      height: 20px;
-      background: rgba(255, 182, 193, 0.2);
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .subject-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      border-radius: 10px;
-      transition: width 1s ease;
-    }
-    
-    .subject-value {
-      min-width: 40px;
-      text-align: right;
-      font-weight: 600;
-    }
-    
-    .grade-distribution {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    
-    .grade-item {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      padding: 0.8rem;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 10px;
-      transition: all 0.3s ease;
-    }
-    
-    .grade-item:hover {
-      transform: translateX(5px);
-      background: rgba(255, 255, 255, 0.8);
-    }
-    
-    .grade-color {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-    }
-    
-    .grade-5 { background: linear-gradient(135deg, #B5EAD7, #8FD3C1); }
-    .grade-4 { background: linear-gradient(135deg, #C7CEEA, #A5B4FC); }
-    .grade-3 { background: linear-gradient(135deg, #FFDAC1, #FFB692); }
-    .grade-2 { background: linear-gradient(135deg, #FF9AA2, #FF7B86); }
-    
-    .grade-info {
-      flex: 1;
-    }
-    
-    .grade-count {
-      font-weight: 700;
-      font-size: 1.1rem;
-    }
-    
-    .animated-stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-    
-    .stat-circle {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      margin: 0 auto;
-    }
-    
-    .circle-bg {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .circle-fill {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background: conic-gradient(var(--primary) 0% var(--fill-percentage), transparent var(--fill-percentage) 100%);
-      mask: radial-gradient(transparent 50%, black 51%);
-      -webkit-mask: radial-gradient(transparent 50%, black 51%);
-    }
-    
-    .circle-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-    
-    .circle-value {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--dark);
-    }
-    
-    .circle-label {
-      font-size: 0.7rem;
-      color: var(--gray);
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    .heatmap-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-    
-    .heatmap-item {
-      padding: 1rem;
-      border-radius: 8px;
-      text-align: center;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    
-    .heatmap-item:hover {
-      transform: scale(1.05);
-    }
-    
-    .heatmap-grade-5 { background: rgba(181, 234, 215, 0.8); }
-    .heatmap-grade-4 { background: rgba(199, 206, 234, 0.8); }
-    .heatmap-grade-3 { background: rgba(255, 218, 193, 0.8); }
-    .heatmap-grade-2 { background: rgba(255, 154, 162, 0.8); }
-    
-    /* Responsive */
-    @media (max-width: 992px) {
-      .app-container {
-        flex-direction: column;
-      }
-      
-      .sidebar {
-        width: 100%;
-        padding: 1.5rem;
-      }
-      
-      .nav-links {
-        display: flex;
-        overflow-x: auto;
-        padding-bottom: 0.5rem;
-      }
-      
-      .nav-item {
-        margin-bottom: 0;
-        margin-right: 1rem;
-      }
-      
-      .nav-link span {
-        display: none;
-      }
-      
-      .nav-link i {
-        margin-right: 0;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .main-content {
-        padding: 1.5rem;
-      }
-      
-      .form-row {
-        flex-direction: column;
-        gap: 1rem;
-      }
-      
-      .btn-group {
-        flex-direction: column;
-      }
-      
-      .about-container {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-      
-      .charts-container {
-        grid-template-columns: 1fr;
-      }
-      
-      .chart-comparison {
-        flex-direction: column;
-      }
-    }
-  </style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(-45deg, #FFB6C1, #B5EAD7, #C7CEEA, #FFDAC1);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 2rem 1.5rem;
+            box-shadow: var(--shadow-soft);
+            z-index: 100;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .sidebar::before {
+                content: "";
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+                transform: rotate(30deg);
+            }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(93, 93, 93, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4);
+            transform: rotate(-5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover .logo-icon {
+            transform: rotate(0deg) scale(1.1);
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+            background: linear-gradient(45deg, #5D5D5D, #FF9AA2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            list-style: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-item {
+            margin-bottom: 0.8rem;
+            transform: translateX(-10px);
+            opacity: 0;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+            .nav-item:nth-child(1) {
+                animation-delay: 0.1s;
+            }
+
+            .nav-item:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .nav-item:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+
+            .nav-item:nth-child(4) {
+                animation-delay: 0.4s;
+            }
+
+            .nav-item:nth-child(5) {
+                animation-delay: 0.5s;
+            }
+
+            .nav-item:nth-child(6) {
+                animation-delay: 0.6s;
+            }
+
+        @keyframes slideIn {
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.2rem;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.4s ease;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .nav-link::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                transition: left 0.5s;
+            }
+
+            .nav-link:hover::before {
+                left: 100%;
+            }
+
+            .nav-link:hover, .nav-link.active {
+                background: rgba(255, 255, 255, 0.7);
+                color: var(--dark);
+                transform: translateX(10px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .nav-link i {
+                margin-right: 15px;
+                font-size: 1.3rem;
+                transition: transform 0.3s ease;
+            }
+
+            .nav-link:hover i {
+                transform: scale(1.2);
+            }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+            .floating-element:nth-child(1) {
+                width: 100px;
+                height: 100px;
+                background: var(--primary);
+                top: 10%;
+                left: 5%;
+                animation-delay: 0s;
+            }
+
+            .floating-element:nth-child(2) {
+                width: 150px;
+                height: 150px;
+                background: var(--secondary);
+                top: 60%;
+                left: 80%;
+                animation-delay: -5s;
+            }
+
+            .floating-element:nth-child(3) {
+                width: 70px;
+                height: 70px;
+                background: var(--accent);
+                top: 20%;
+                left: 80%;
+                animation-delay: -10s;
+            }
+
+            .floating-element:nth-child(4) {
+                width: 120px;
+                height: 120px;
+                background: var(--warning);
+                top: 70%;
+                left: 10%;
+                animation-delay: -15s;
+            }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            33% {
+                transform: translate(30px, -50px) rotate(120deg);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
+
+            100% {
+                transform: translate(0, 0) rotate(360deg);
+            }
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: var(--dark);
+            position: relative;
+            display: inline-block;
+        }
+
+            .page-title::after {
+                content: "";
+                position: absolute;
+                bottom: -5px;
+                left: 0;
+                width: 50%;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary), var(--secondary));
+                border-radius: 2px;
+            }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .user-info::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, transparent, rgba(255,255,255,0.5), transparent);
+                transform: translateX(-100%);
+                transition: transform 0.6s;
+            }
+
+            .user-info:hover::before {
+                transform: translateX(100%);
+            }
+
+            .user-info:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-hover);
+            }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+            .card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            }
+
+            .card:hover {
+                transform: translateY(-10px);
+                box-shadow: var(--shadow-hover);
+            }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(93, 93, 93, 0.1);
+        }
+
+        .card-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: var(--dark);
+            position: relative;
+            display: inline-block;
+        }
+
+            .card-title::after {
+                content: "";
+                position: absolute;
+                bottom: -8px;
+                left: 0;
+                width: 30px;
+                height: 3px;
+                background: var(--primary);
+                border-radius: 2px;
+            }
+
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.8rem 1.7rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-family: 'Quicksand', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .btn::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                transition: left 0.5s;
+            }
+
+            .btn:hover::before {
+                left: 100%;
+            }
+
+            .btn i {
+                margin-right: 10px;
+                transition: transform 0.3s ease;
+            }
+
+            .btn:hover i {
+                transform: scale(1.2);
+            }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4);
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(255, 182, 193, 0.6);
+            }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: var(--dark);
+            box-shadow: 0 5px 15px rgba(181, 234, 215, 0.4);
+        }
+
+            .btn-secondary:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(181, 234, 215, 0.6);
+            }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+            .btn-outline:hover {
+                background: rgba(255, 182, 193, 0.1);
+                transform: translateY(-5px);
+            }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #FF7B86);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255, 154, 162, 0.4);
+        }
+
+            .btn-danger:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(255, 154, 162, 0.6);
+            }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #8BD3C7);
+            color: var(--dark);
+            box-shadow: 0 5px 15px rgba(162, 225, 214, 0.4);
+        }
+
+            .btn-success:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(162, 225, 214, 0.6);
+            }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            border: 2px solid rgba(181, 234, 215, 0.5);
+            border-radius: 10px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+            .form-control:focus {
+                outline: none;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.3);
+                transform: translateY(-2px);
+            }
+
+        .form-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+            .table th {
+                background: linear-gradient(135deg, var(--primary), var(--accent));
+                color: white;
+                padding: 1.2rem;
+                text-align: left;
+                font-weight: 600;
+            }
+
+            .table td {
+                padding: 1.2rem;
+                border-bottom: 1px solid #f0f0f0;
+                transition: all 0.3s ease;
+            }
+
+            .table tbody tr:hover {
+                background: rgba(181, 234, 215, 0.2);
+                transform: scale(1.01);
+            }
+
+            .table tbody tr.selected {
+                background: rgba(181, 234, 215, 0.4);
+            }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.8rem;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+            transition: all 0.4s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .stat-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, var(--primary), var(--secondary));
+            }
+
+            .stat-card:hover {
+                transform: translateY(-10px);
+                box-shadow: var(--shadow-hover);
+            }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+            font-size: 1.8rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+            .stat-icon.primary {
+                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+                color: white;
+            }
+
+            .stat-icon.success {
+                background: linear-gradient(135deg, var(--success), #8BD3C7);
+                color: white;
+            }
+
+            .stat-icon.warning {
+                background: linear-gradient(135deg, var(--warning), #FFB692);
+                color: white;
+            }
+
+            .stat-icon.danger {
+                background: linear-gradient(135deg, var(--danger), #FF7B86);
+                color: white;
+            }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(45deg, var(--dark), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 1.8rem;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .file-upload::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, transparent, rgba(255,255,255,0.5), transparent);
+                transform: translateX(-100%);
+                transition: transform 0.6s;
+            }
+
+            .file-upload:hover::before {
+                transform: translateX(100%);
+            }
+
+            .file-upload:hover {
+                border-color: var(--primary);
+                background: rgba(255, 182, 193, 0.1);
+                transform: translateY(-5px);
+            }
+
+            .file-upload i {
+                font-size: 3.5rem;
+                color: var(--primary);
+                margin-bottom: 1.2rem;
+            }
+
+        /* About Section */
+        .about-container {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .developer-photo {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+        }
+
+            .developer-photo:hover {
+                transform: scale(1.05);
+                box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            }
+
+        .developer-info {
+            flex: 1;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(93, 93, 93, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* НОВЫЕ СТИЛИ ДЛЯ ГРАФИКОВ */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .chart-tab {
+            padding: 0.7rem 1.5rem;
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+            .chart-tab.active {
+                background: var(--primary);
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(255, 182, 193, 0.4);
+            }
+
+            .chart-tab:hover:not(.active) {
+                background: rgba(255, 182, 193, 0.2);
+                transform: translateY(-2px);
+            }
+
+        .chart-wrapper {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .chart-wrapper::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            }
+
+            .chart-wrapper:hover {
+                transform: translateY(-5px);
+                box-shadow: var(--shadow-hover);
+            }
+
+        .chart-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+            text-align: center;
+        }
+
+        .chart-comparison {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .comparison-item {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .comparison-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 0.3rem;
+        }
+
+        .subject-performance {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .subject-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .subject-name {
+            min-width: 120px;
+            font-weight: 500;
+        }
+
+        .subject-progress {
+            flex: 1;
+            height: 20px;
+            background: rgba(255, 182, 193, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .subject-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        .subject-value {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .grade-distribution {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .grade-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+            .grade-item:hover {
+                transform: translateX(5px);
+                background: rgba(255, 255, 255, 0.8);
+            }
+
+        .grade-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .grade-5 {
+            background: linear-gradient(135deg, #B5EAD7, #8FD3C1);
+        }
+
+        .grade-4 {
+            background: linear-gradient(135deg, #C7CEEA, #A5B4FC);
+        }
+
+        .grade-3 {
+            background: linear-gradient(135deg, #FFDAC1, #FFB692);
+        }
+
+        .grade-2 {
+            background: linear-gradient(135deg, #FF9AA2, #FF7B86);
+        }
+
+        .grade-info {
+            flex: 1;
+        }
+
+        .grade-count {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .animated-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto;
+        }
+
+        .circle-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .circle-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0% var(--fill-percentage), transparent var(--fill-percentage) 100%);
+            mask: radial-gradient(transparent 50%, black 51%);
+            -webkit-mask: radial-gradient(transparent 50%, black 51%);
+        }
+
+        .circle-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .circle-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .circle-label {
+            font-size: 0.7rem;
+            color: var(--gray);
+        }
+
+        .heatmap-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .heatmap-item {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+            .heatmap-item:hover {
+                transform: scale(1.05);
+            }
+
+        .heatmap-grade-5 {
+            background: rgba(181, 234, 215, 0.8);
+        }
+
+        .heatmap-grade-4 {
+            background: rgba(199, 206, 234, 0.8);
+        }
+
+        .heatmap-grade-3 {
+            background: rgba(255, 218, 193, 0.8);
+        }
+
+        .heatmap-grade-2 {
+            background: rgba(255, 154, 162, 0.8);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 1.5rem;
+            }
+
+            .nav-links {
+                display: flex;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+
+            .nav-item {
+                margin-bottom: 0;
+                margin-right: 1rem;
+            }
+
+            .nav-link span {
+                display: none;
+            }
+
+            .nav-link i {
+                margin-right: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .about-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-comparison {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="logo">
-        <div class="logo-icon">🎓</div>
-        <div class="logo-text">Умный журнал 3 курс</div>
-      </div>
-      <ul class="nav-links">
-        <li class="nav-item">
-          <a class="nav-link" data-tab="upload">
-            <i class="material-icons">cloud_upload</i>
-            <span>Загрузка</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-tab="edit">
-            <i class="material-icons">edit</i>
-            <span>Редактирование</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-tab="stats_table">
-            <i class="material-icons">table_chart</i>
-            <span>Статистика</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link active" data-tab="stats_chart">
-            <i class="material-icons">bar_chart</i>
-            <span>Графики</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-tab="help">
-            <i class="material-icons">help</i>
-            <span>Помощь</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" data-tab="about">
-            <i class="material-icons">person</i>
-            <span>О программе</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-      <div class="floating-elements">
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-        <div class="floating-element"></div>
-      </div>
-      
-      <div class="header">
-        <h1 class="page-title" id="page-title">Интерактивная аналитика</h1>
-        <div class="user-info">
-          <div class="user-avatar">ВА</div>
-          <div>
-            <div style="font-weight: 600;">Вичканова Анастасия</div>
-            <div style="font-size: 0.8rem; color: var(--gray);">Преподаватель</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Upload Section -->
-      <section class="card" id="upload" style="display: none;">
-        <div class="card-header">
-          <h2 class="card-title">Загрузка оценок</h2>
-          <div class="btn-group">
-            <button class="btn btn-primary" id="export_xlsx">
-              <i class="material-icons">download</i>Скачать XLSX
-            </button>
-          </div>
-        </div>
-        <p style="margin-bottom: 1.5rem; color: var(--gray);">
-          Поддерживаются форматы .csv, .txt и .xlsx. Загруженные данные отобразятся в таблице ниже.
-        </p>
-        
-        <div class="file-upload" id="file_upload_area">
-          <i class="material-icons">cloud_upload</i>
-          <h3>Перетащите файл сюда или нажмите для выбора</h3>
-          <p style="color: var(--gray); margin-top: 0.5rem;">
-            Поддерживаются CSV, TXT и XLSX файлы
-          </p>
-          <input type="file" id="file_input" accept=".csv,.txt,.xlsx" style="display: none;">
-        </div>
-        
-        <div style="margin-top: 2rem;">
-          <h3 style="margin-bottom: 1rem;">Загруженные данные</h3>
-          <div class="table-container">
-            <div id="table_wrapper"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Edit Section -->
-      <section class="card" id="edit" style="display: none;">
-        <div class="card-header">
-          <h2 class="card-title">Создание и редактирование журнала</h2>
-          <div class="btn-group">
-            <button class="btn btn-success" id="save_csv">
-              <i class="material-icons">save</i>Сохранить CSV
-            </button>
-          </div>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-col">
-            <label class="form-label">Группа</label>
-            <input type="text" id="input_group" class="form-control" value="3 курс">
-          </div>
-          <div class="form-col">
-            <label class="form-label">Фамилия</label>
-            <input type="text" id="input_last" class="form-control">
-          </div>
-          <div class="form-col">
-            <label class="form-label">Имя</label>
-            <input type="text" id="input_first" class="form-control">
-          </div>
-          <div class="form-col">
-            <label class="form-label">Отчество</label>
-            <input type="text" id="input_patron" class="form-control">
-          </div>
-        </div>
-        
-        <h3 style="margin: 1.5rem 0 1rem;">Оценки по предметам</h3>
-        <div class="form-row" id="subjects_inputs"></div>
-        
-        <div class="btn-group" style="margin-top: 1.5rem;">
-          <button class="btn btn-primary" id="add_student">
-            <i class="material-icons">person_add</i>Добавить ученика
-          </button>
-          <button class="btn btn-outline" id="update_student">
-            <i class="material-icons">update</i>Обновить данные
-          </button>
-          <button class="btn btn-danger" id="delete_student">
-            <i class="material-icons">delete</i>Удалить ученика
-          </button>
-        </div>
-        
-        <div style="margin-top: 2rem;">
-          <h3 style="margin-bottom: 1rem;">Список учеников</h3>
-          <div class="table-container">
-            <div id="edit_table_wrapper"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Stats Table Section -->
-      <section class="card" id="stats_table" style="display: none;">
-        <div class="card-header">
-          <h2 class="card-title">Статистика успеваемости</h2>
-          <button class="btn btn-primary" id="recalc_stats">
-            <i class="material-icons">refresh</i>Обновить
-          </button>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-col">
-            <label class="form-label">Группа</label>
-            <select id="stats_group" class="form-control">
-              <option value="ALL">Все группы</option>
-            </select>
-          </div>
-          <div class="form-col">
-            <label class="form-label">Предмет</label>
-            <select id="stats_subject" class="form-control">
-              <option value="ALL">Все предметы</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="table-container">
-          <div id="stats_table_wrapper"></div>
-        </div>
-      </section>
-
-      <!-- Stats Chart Section - ПОЛНОСТЬЮ ПЕРЕРАБОТАНА -->
-      <section class="card" id="stats_chart">
-        <div class="card-header">
-          <h2 class="card-title">Визуальная аналитика успеваемости</h2>
-          <button class="btn btn-primary" id="replot">
-            <i class="material-icons">autorenew</i>Обновить
-          </button>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-col">
-            <label class="form-label">Группа</label>
-            <select id="chart_group" class="form-control">
-              <option value="ALL">Все группы</option>
-            </select>
-          </div>
-          <div class="form-col">
-            <label class="form-label">Предмет</label>
-            <select id="chart_subject" class="form-control">
-              <option value="ALL">Все предметы</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="chart-tabs">
-          <button class="chart-tab active" data-chart="performance">📊 Успеваемость</button>
-          <button class="chart-tab" data-chart="distribution">🎯 Распределение</button>
-          <button class="chart-tab" data-chart="comparison">📈 Сравнение</button>
-          <button class="chart-tab" data-chart="progress">📈 Прогресс</button>
-          <button class="chart-tab" data-chart="heatmap">🔥 Heatmap</button>
-        </div>
-        
-        <!-- График успеваемости -->
-        <div class="charts-container" id="performance-chart">
-          <div class="chart-wrapper">
-            <div class="chart-title">📈 Радар успеваемости по предметам</div>
-            <canvas id="radar_chart" height="300"></canvas>
-            <div class="subject-performance" id="subject-performance"></div>
-          </div>
-          <div class="chart-wrapper">
-            <div class="chart-title">🎯 Ключевые показатели</div>
-            <div class="animated-stats">
-              <div class="stat-circle">
-                <div class="circle-bg">
-                  <div class="circle-fill" id="avg-grade-circle"></div>
-                </div>
-                <div class="circle-text">
-                  <div class="circle-value" id="avg-grade-value">0.0</div>
-                  <div class="circle-label">Средний балл</div>
-                </div>
-              </div>
-              <div class="stat-circle">
-                <div class="circle-bg">
-                  <div class="circle-fill" id="success-circle"></div>
-                </div>
-                <div class="circle-text">
-                  <div class="circle-value" id="success-value">0%</div>
-                  <div class="circle-label">Успеваемость</div>
-                </div>
-              </div>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🎓</div>
+                <div class="logo-text">Умный журнал 3 курс</div>
             </div>
-            <div class="chart-comparison">
-              <div class="comparison-item">
-                <div class="comparison-value" id="max-grade">0</div>
-                <div class="comparison-label">Макс. балл</div>
-              </div>
-              <div class="comparison-item">
-                <div class="comparison-value" id="min-grade">0</div>
-                <div class="comparison-label">Мин. балл</div>
-              </div>
-              <div class="comparison-item">
-                <div class="comparison-value" id="total-students">0</div>
-                <div class="comparison-label">Студентов</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- График распределения оценок -->
-        <div class="charts-container" id="distribution-chart" style="display: none;">
-          <div class="chart-wrapper">
-            <div class="chart-title">🍩 Распределение оценок</div>
-            <canvas id="doughnut_chart" height="300"></canvas>
-          </div>
-          <div class="chart-wrapper">
-            <div class="chart-title">📋 Детализация по оценкам</div>
-            <div class="grade-distribution" id="grade-distribution"></div>
-            <div class="subject-performance">
-              <div class="subject-bar">
-                <div class="subject-name">🎯 Отличники (5)</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="excellent-bar"></div>
-                </div>
-                <div class="subject-value" id="excellent-value">0%</div>
-              </div>
-              <div class="subject-bar">
-                <div class="subject-name">👍 Хорошисты (4)</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="good-bar"></div>
-                </div>
-                <div class="subject-value" id="good-value">0%</div>
-              </div>
-              <div class="subject-bar">
-                <div class="subject-name">✍️ Троечники (3)</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="satisfactory-bar"></div>
-                </div>
-                <div class="subject-value" id="satisfactory-value">0%</div>
-              </div>
-              <div class="subject-bar">
-                <div class="subject-name">⚠️ Неуспевающие (2)</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="fail-bar"></div>
-                </div>
-                <div class="subject-value" id="fail-value">0%</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- График сравнения -->
-        <div class="charts-container" id="comparison-chart" style="display: none;">
-          <div class="chart-wrapper">
-            <div class="chart-title">📊 Сравнение предметов</div>
-            <canvas id="bar_chart" height="300"></canvas>
-          </div>
-          <div class="chart-wrapper">
-            <div class="chart-title">🏆 Рейтинг предметов</div>
-            <div class="subject-performance" id="subject-ranking"></div>
-          </div>
-        </div>
-        
-        <!-- График прогресса -->
-        <div class="charts-container" id="progress-chart" style="display: none;">
-          <div class="chart-wrapper">
-            <div class="chart-title">📈 Динамика успеваемости</div>
-            <canvas id="line_chart" height="300"></canvas>
-          </div>
-          <div class="chart-wrapper">
-            <div class="chart-title">📊 Показатели эффективности</div>
-            <div class="animated-stats">
-              <div class="stat-circle">
-                <div class="circle-bg">
-                  <div class="circle-fill" id="progress-circle"></div>
-                </div>
-                <div class="circle-text">
-                  <div class="circle-value" id="progress-value">0%</div>
-                  <div class="circle-label">Общий прогресс</div>
-                </div>
-              </div>
-              <div class="stat-circle">
-                <div class="circle-bg">
-                  <div class="circle-fill" id="quality-circle"></div>
-                </div>
-                <div class="circle-text">
-                  <div class="circle-value" id="quality-value">0%</div>
-                  <div class="circle-label">Качество знаний</div>
-                </div>
-              </div>
-            </div>
-            <div class="chart-comparison">
-              <div class="comparison-item">
-                <div class="comparison-value" id="improved-count">0</div>
-                <div class="comparison-label">📈 Улучшили</div>
-              </div>
-              <div class="comparison-item">
-                <div class="comparison-value" id="declined-count">0</div>
-                <div class="comparison-label">📉 Ухудшили</div>
-              </div>
-              <div class="comparison-item">
-                <div class="comparison-value" id="stable-count">0</div>
-                <div class="comparison-label">⚖️ Стабильны</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Heatmap -->
-        <div class="charts-container" id="heatmap-chart" style="display: none;">
-          <div class="chart-wrapper">
-            <div class="chart-title">🔥 Heatmap успеваемости</div>
-            <canvas id="heatmap_chart" height="300"></canvas>
-          </div>
-          <div class="chart-wrapper">
-            <div class="chart-title">🎨 Легенда оценок</div>
-            <div class="heatmap-container" id="heatmap-legend"></div>
-            <div class="subject-performance" style="margin-top: 1.5rem;">
-              <div class="subject-bar">
-                <div class="subject-name">Средний балл группы</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="group-avg-bar"></div>
-                </div>
-                <div class="subject-value" id="group-avg-value">0.0</div>
-              </div>
-              <div class="subject-bar">
-                <div class="subject-name">Лучший предмет</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="best-subject-bar"></div>
-                </div>
-                <div class="subject-value" id="best-subject-value">-</div>
-              </div>
-              <div class="subject-bar">
-                <div class="subject-name">Слабый предмет</div>
-                <div class="subject-progress">
-                  <div class="subject-fill" id="weak-subject-bar"></div>
-                </div>
-                <div class="subject-value" id="weak-subject-value">-</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Help Section -->
-      <section class="card" id="help" style="display: none;">
-        <div class="card-header">
-          <h2 class="card-title">Помощь по использованию</h2>
-        </div>
-        
-        <div class="form-row">
-          <div class="form-col">
-            <h3 style="margin-bottom: 1rem;">Назначение вкладок</h3>
-            <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem;">
-              <li style="margin-bottom: 0.8rem;">
-                <strong>Загрузка</strong> — загрузка .csv/.txt/.xlsx файлов с оценками. 
-                Файл должен содержать столбцы: Group, LastName, FirstName, Patronymic, и предметы.
-              </li>
-              <li style="margin-bottom: 0.8rem;">
-                <strong>Редактирование</strong> — добавление, редактирование и удаление записей об учениках.
-              </li>
-              <li style="margin-bottom: 0.8rem;">
-                <strong>Статистика</strong> — табличная статистика: средний балл, медиана, распределение оценок.
-              </li>
-              <li style="margin-bottom: 0.8rem;">
-                <strong>Графики</strong> — визуализация статистики в виде диаграмм.
-              </li>
+            <ul class="nav-links">
+                <li class="nav-item">
+                    <a class="nav-link" data-tab="upload">
+                        <i class="material-icons">cloud_upload</i>
+                        <span>Загрузка</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-tab="edit">
+                        <i class="material-icons">edit</i>
+                        <span>Редактирование</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-tab="stats_table">
+                        <i class="material-icons">table_chart</i>
+                        <span>Статистика</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" data-tab="stats_chart">
+                        <i class="material-icons">bar_chart</i>
+                        <span>Графики</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-tab="help">
+                        <i class="material-icons">help</i>
+                        <span>Помощь</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-tab="about">
+                        <i class="material-icons">person</i>
+                        <span>О программе</span>
+                    </a>
+                </li>
             </ul>
-            
-            <h3 style="margin-bottom: 1rem;">Формат файла</h3>
-            <p style="margin-bottom: 1rem;">
-              Пример CSV файла:
-            </p>
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; margin-bottom: 1.5rem;">
-              Group,LastName,FirstName,Patronymic,ИВТС,ЦОС,ИТ,ТЭС,КПК,Философия,Криптография,Антенны,Физра<br>
-              3 курс,Иванов,Иван,Иванович,5,4,5,5,4,5,4,5,5<br>
-              3 курс,Петров,Пётр,Петрович,4,5,4,4,5,4,5,4,5
-            </div>
-          </div>
         </div>
-      </section>
 
-      <!-- About Section -->
-<section class="card" id="about" style="display: none;">
-  <div class="card-header">
-    <h2 class="card-title">О программе и разработчике</h2>
-  </div>
-  
-  <div class="about-container">
-    <!-- Замените src на путь к вашему реальному фото -->
-    <img src="https://i.pinimg.com/736x/7d/fb/89/7dfb89f3c5dceecbebc98beea4c7e1d2.jpg" alt="Фото Анастасии Вичкановой" class="developer-photo" id="developer-photo">
-    <div class="developer-info">
-      <h3 style="margin-bottom: 1rem;">Версия: 2.0</h3>
-      <h3 style="margin-bottom: 1rem;">Дата разработки: 2025</h3>
-      <h3 style="margin-bottom: 1rem;">Разработчик</h3>
-      <h4 style="margin-bottom: 1rem;">Вичканова Анастасия Андреевна</h4>
-      <p style="margin-bottom: 0.5rem;">
-        <strong>Email:</strong> 
-        <a href="mailto:anastaciav@yan.com">anastaciav@yan.com</a>
-      </p>
-      <p style="margin-bottom: 0.5rem;">
-        <strong>Телефон:</strong> +7 (999) 123-45-67
-      </p>
-      <p style="margin-bottom: 0.5rem;">
-        <strong>Сайт проекта:</strong> 
-        <a href="https://anastasiyav2019-lab.github.io/grade-journal/" target="_blank">https://anastasiyav2019-lab.github.io/grade-journal/</a>
-      </p>
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="floating-elements">
+                <div class="floating-element"></div>
+                <div class="floating-element"></div>
+                <div class="floating-element"></div>
+                <div class="floating-element"></div>
+            </div>
 
-      <h3 style="margin-bottom: 1rem; margin-top: 2rem;">Используемые технологии</h3>
-      <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem;">
-        <li>HTML5, CSS3, JavaScript - основа интерфейса</li>
-        <li>Chart.js - интерактивные графики и диаграммы</li>
-        <li>SheetJS (xlsx) - работа с Excel файлами</li>
-        <li>Google Fonts - современная типографика</li>
-        <li>Material Icons - иконографика</li>
-        <li>CSS Grid & Flexbox - адаптивная верстка</li>
-      </ul>
+            <div class="header">
+                <h1 class="page-title" id="page-title">Интерактивная аналитика</h1>
+                <div class="user-info">
+                    <div class="user-avatar">ВА</div>
+                    <div>
+                        <div style="font-weight: 600;">Вичканова Анастасия</div>
+                        <div style="font-size: 0.8rem; color: var(--gray);">Преподаватель</div>
+                    </div>
+                </div>
+            </div>
 
-      <h3 style="margin-bottom: 1rem;">Особенности</h3>
-      <ul style="padding-left: 1.5rem;">
-        <li>Поддержка форматов: CSV, TXT, XLSX</li>
-        <li>Интуитивный drag-and-drop интерфейс</li>
-        <li>Расширенная статистика и аналитика</li>
-        <li>5 типов интерактивных графиков</li>
-        <li>Экспорт результатов в CSV и Excel</li>
-        <li>Полностью адаптивный дизайн</li>
-        <li>Работает оффлайн после загрузки</li>
-      </ul>
+            <!-- Upload Section -->
+            <section class="card" id="upload" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Загрузка оценок</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="export_xlsx">
+                            <i class="material-icons">download</i>Скачать XLSX
+                        </button>
+                    </div>
+                </div>
+                <p style="margin-bottom: 1.5rem; color: var(--gray);">
+                    Поддерживаются форматы .csv, .txt и .xlsx. Загруженные данные отобразятся в таблице ниже.
+                </p>
+
+                <div class="file-upload" id="file_upload_area">
+                    <i class="material-icons">cloud_upload</i>
+                    <h3>Перетащите файл сюда или нажмите для выбора</h3>
+                    <p style="color: var(--gray); margin-top: 0.5rem;">
+                        Поддерживаются CSV, TXT и XLSX файлы
+                    </p>
+                    <input type="file" id="file_input" accept=".csv,.txt,.xlsx" style="display: none;">
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Загруженные данные</h3>
+                    <div class="table-container">
+                        <div id="table_wrapper"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Edit Section -->
+            <section class="card" id="edit" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Создание и редактирование журнала</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="save_csv">
+                            <i class="material-icons">save</i>Сохранить CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">Группа</label>
+                        <input type="text" id="input_group" class="form-control" value="3 курс">
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">Фамилия</label>
+                        <input type="text" id="input_last" class="form-control">
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">Имя</label>
+                        <input type="text" id="input_first" class="form-control">
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">Отчество</label>
+                        <input type="text" id="input_patron" class="form-control">
+                    </div>
+                </div>
+
+                <h3 style="margin: 1.5rem 0 1rem;">Оценки по предметам</h3>
+                <div class="form-row" id="subjects_inputs"></div>
+
+                <div class="btn-group" style="margin-top: 1.5rem;">
+                    <button class="btn btn-primary" id="add_student">
+                        <i class="material-icons">person_add</i>Добавить ученика
+                    </button>
+                    <button class="btn btn-outline" id="update_student">
+                        <i class="material-icons">update</i>Обновить данные
+                    </button>
+                    <button class="btn btn-danger" id="delete_student">
+                        <i class="material-icons">delete</i>Удалить ученика
+                    </button>
+                </div>
+
+                <div style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Список учеников</h3>
+                    <div class="table-container">
+                        <div id="edit_table_wrapper"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Table Section -->
+            <section class="card" id="stats_table" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Статистика успеваемости</h2>
+                    <button class="btn btn-primary" id="recalc_stats">
+                        <i class="material-icons">refresh</i>Обновить
+                    </button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">Группа</label>
+                        <select id="stats_group" class="form-control">
+                            <option value="ALL">Все группы</option>
+                        </select>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">Предмет</label>
+                        <select id="stats_subject" class="form-control">
+                            <option value="ALL">Все предметы</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div id="stats_table_wrapper"></div>
+                </div>
+            </section>
+
+            <!-- Stats Chart Section - ПОЛНОСТЬЮ ПЕРЕРАБОТАНА -->
+            <section class="card" id="stats_chart">
+                <div class="card-header">
+                    <h2 class="card-title">Визуальная аналитика успеваемости</h2>
+                    <button class="btn btn-primary" id="replot">
+                        <i class="material-icons">autorenew</i>Обновить
+                    </button>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <label class="form-label">Группа</label>
+                        <select id="chart_group" class="form-control">
+                            <option value="ALL">Все группы</option>
+                        </select>
+                    </div>
+                    <div class="form-col">
+                        <label class="form-label">Предмет</label>
+                        <select id="chart_subject" class="form-control">
+                            <option value="ALL">Все предметы</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="chart-tabs">
+                    <button class="chart-tab active" data-chart="performance">📊 Успеваемость</button>
+                    <button class="chart-tab" data-chart="distribution">🎯 Распределение</button>
+                    <button class="chart-tab" data-chart="comparison">📈 Сравнение</button>
+                    <button class="chart-tab" data-chart="progress">📈 Прогресс</button>
+                    <button class="chart-tab" data-chart="heatmap">🔥 Heatmap</button>
+                </div>
+
+                <!-- График успеваемости -->
+                <div class="charts-container" id="performance-chart">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">📈 Радар успеваемости по предметам</div>
+                        <canvas id="radar_chart" height="300"></canvas>
+                        <div class="subject-performance" id="subject-performance"></div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">🎯 Ключевые показатели</div>
+                        <div class="animated-stats">
+                            <div class="stat-circle">
+                                <div class="circle-bg">
+                                    <div class="circle-fill" id="avg-grade-circle"></div>
+                                </div>
+                                <div class="circle-text">
+                                    <div class="circle-value" id="avg-grade-value">0.0</div>
+                                    <div class="circle-label">Средний балл</div>
+                                </div>
+                            </div>
+                            <div class="stat-circle">
+                                <div class="circle-bg">
+                                    <div class="circle-fill" id="success-circle"></div>
+                                </div>
+                                <div class="circle-text">
+                                    <div class="circle-value" id="success-value">0%</div>
+                                    <div class="circle-label">Успеваемость</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-comparison">
+                            <div class="comparison-item">
+                                <div class="comparison-value" id="max-grade">0</div>
+                                <div class="comparison-label">Макс. балл</div>
+                            </div>
+                            <div class="comparison-item">
+                                <div class="comparison-value" id="min-grade">0</div>
+                                <div class="comparison-label">Мин. балл</div>
+                            </div>
+                            <div class="comparison-item">
+                                <div class="comparison-value" id="total-students">0</div>
+                                <div class="comparison-label">Студентов</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- График распределения оценок -->
+                <div class="charts-container" id="distribution-chart" style="display: none;">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">🍩 Распределение оценок</div>
+                        <canvas id="doughnut_chart" height="300"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">📋 Детализация по оценкам</div>
+                        <div class="grade-distribution" id="grade-distribution"></div>
+                        <div class="subject-performance">
+                            <div class="subject-bar">
+                                <div class="subject-name">🎯 Отличники (5)</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="excellent-bar"></div>
+                                </div>
+                                <div class="subject-value" id="excellent-value">0%</div>
+                            </div>
+                            <div class="subject-bar">
+                                <div class="subject-name">👍 Хорошисты (4)</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="good-bar"></div>
+                                </div>
+                                <div class="subject-value" id="good-value">0%</div>
+                            </div>
+                            <div class="subject-bar">
+                                <div class="subject-name">✍️ Троечники (3)</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="satisfactory-bar"></div>
+                                </div>
+                                <div class="subject-value" id="satisfactory-value">0%</div>
+                            </div>
+                            <div class="subject-bar">
+                                <div class="subject-name">⚠️ Неуспевающие (2)</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="fail-bar"></div>
+                                </div>
+                                <div class="subject-value" id="fail-value">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- График сравнения -->
+                <div class="charts-container" id="comparison-chart" style="display: none;">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">📊 Сравнение предметов</div>
+                        <canvas id="bar_chart" height="300"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">🏆 Рейтинг предметов</div>
+                        <div class="subject-performance" id="subject-ranking"></div>
+                    </div>
+                </div>
+
+                <!-- График прогресса -->
+                <div class="charts-container" id="progress-chart" style="display: none;">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">📈 Динамика успеваемости</div>
+                        <canvas id="line_chart" height="300"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">📊 Показатели эффективности</div>
+                        <div class="animated-stats">
+                            <div class="stat-circle">
+                                <div class="circle-bg">
+                                    <div class="circle-fill" id="progress-circle"></div>
+                                </div>
+                                <div class="circle-text">
+                                    <div class="circle-value" id="progress-value">0%</div>
+                                    <div class="circle-label">Общий прогресс</div>
+                                </div>
+                            </div>
+                            <div class="stat-circle">
+                                <div class="circle-bg">
+                                    <div class="circle-fill" id="quality-circle"></div>
+                                </div>
+                                <div class="circle-text">
+                                    <div class="circle-value" id="quality-value">0%</div>
+                                    <div class="circle-label">Качество знаний</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-comparison">
+                            <div class="comparison-item">
+                                <div class="comparison-value" id="improved-count">0</div>
+                                <div class="comparison-label">📈 Улучшили</div>
+                            </div>
+                            <div class="comparison-item">
+                                <div class="comparison-value" id="declined-count">0</div>
+                                <div class="comparison-label">📉 Ухудшили</div>
+                            </div>
+                            <div class="comparison-item">
+                                <div class="comparison-value" id="stable-count">0</div>
+                                <div class="comparison-label">⚖️ Стабильны</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heatmap -->
+                <div class="charts-container" id="heatmap-chart" style="display: none;">
+                    <div class="chart-wrapper">
+                        <div class="chart-title">🔥 Heatmap успеваемости</div>
+                        <canvas id="heatmap_chart" height="300"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <div class="chart-title">🎨 Легенда оценок</div>
+                        <div class="heatmap-container" id="heatmap-legend"></div>
+                        <div class="subject-performance" style="margin-top: 1.5rem;">
+                            <div class="subject-bar">
+                                <div class="subject-name">Средний балл группы</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="group-avg-bar"></div>
+                                </div>
+                                <div class="subject-value" id="group-avg-value">0.0</div>
+                            </div>
+                            <div class="subject-bar">
+                                <div class="subject-name">Лучший предмет</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="best-subject-bar"></div>
+                                </div>
+                                <div class="subject-value" id="best-subject-value">-</div>
+                            </div>
+                            <div class="subject-bar">
+                                <div class="subject-name">Слабый предмет</div>
+                                <div class="subject-progress">
+                                    <div class="subject-fill" id="weak-subject-bar"></div>
+                                </div>
+                                <div class="subject-value" id="weak-subject-value">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Help Section -->
+            <section class="card" id="help" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">Помощь по использованию</h2>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <h3 style="margin-bottom: 1rem;">Назначение вкладок</h3>
+                        <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong>Загрузка</strong> — загрузка .csv/.txt/.xlsx файлов с оценками.
+                                Файл должен содержать столбцы: Group, LastName, FirstName, Patronymic, и предметы.
+                            </li>
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong>Редактирование</strong> — добавление, редактирование и удаление записей об учениках.
+                            </li>
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong>Статистика</strong> — табличная статистика: средний балл, медиана, распределение оценок.
+                            </li>
+                            <li style="margin-bottom: 0.8rem;">
+                                <strong>Графики</strong> — визуализация статистики в виде диаграмм.
+                            </li>
+                        </ul>
+
+                        <h3 style="margin-bottom: 1rem;">Формат файла</h3>
+                        <p style="margin-bottom: 1rem;">
+                            Пример CSV файла:
+                        </p>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                            Group,LastName,FirstName,Patronymic,ИВТС,ЦОС,ИТ,ТЭС,КПК,Философия,Криптография,Антенны,Физра<br>
+                            3 курс,Иванов,Иван,Иванович,5,4,5,5,4,5,4,5,5<br>
+                            3 курс,Петров,Пётр,Петрович,4,5,4,4,5,4,5,4,5
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section class="card" id="about" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">О программе и разработчике</h2>
+                </div>
+
+                <div class="about-container">
+                    <!-- Замените src на путь к вашему реальному фото -->
+                    <img src="https://sun9-12.userapi.com/s/v1/ig2/X006wg4rRGPUrVpNE133Efdv7AF6X7wWZP0_DuOxHxrwkxhusEPohEP9APG_2V_XVAzLeIhRMAO_1qiNVFuTHi8A.jpg?quality=96&as=32x48,48x72,72x108,108x162,160x240,240x360,360x540,480x720,540x810,640x960,720x1080,1080x1620,1280x1920,1440x2160&from=bu&cs=1440x0" alt="Фото Анастасии Вичкановой" class="developer-photo" id="developer-photo">
+                    <div class="developer-info">
+                        <h3 style="margin-bottom: 1rem;">Версия: 2.0</h3>
+                        <h3 style="margin-bottom: 1rem;">Дата разработки: 2025</h3>
+                        <h3 style="margin-bottom: 1rem;">Разработчик</h3>
+                        <h4 style="margin-bottom: 1rem;">Вичканова Анастасия Андреевна</h4>
+                        <p style="margin-bottom: 0.5rem;">
+                            <strong>Email:</strong>
+                            <a href="mailto:anastaciav@yan.com">anastaciav@yan.com</a>
+                        </p>
+                        <p style="margin-bottom: 0.5rem;">
+                            <strong>Телефон:</strong> +7 (999) 123-45-67
+                        </p>
+                        <p style="margin-bottom: 0.5rem;">
+                            <strong>Сайт проекта:</strong>
+                            <a href="https://anastasiyav2019-lab.github.io/grade-journal/" target="_blank">https://anastasiyav2019-lab.github.io/grade-journal/</a>
+                        </p>
+
+                        <h3 style="margin-bottom: 1rem; margin-top: 2rem;">Используемые технологии</h3>
+                        <ul style="padding-left: 1.5rem; margin-bottom: 1.5rem;">
+                            <li>HTML5, CSS3, JavaScript - основа интерфейса</li>
+                            <li>Chart.js - интерактивные графики и диаграммы</li>
+                            <li>SheetJS (xlsx) - работа с Excel файлами</li>
+                            <li>Google Fonts - современная типографика</li>
+                            <li>Material Icons - иконографика</li>
+                            <li>CSS Grid & Flexbox - адаптивная верстка</li>
+                        </ul>
+
+                        <h3 style="margin-bottom: 1rem;">Особенности</h3>
+                        <ul style="padding-left: 1.5rem;">
+                            <li>Поддержка форматов: CSV, TXT, XLSX</li>
+                            <li>Интуитивный drag-and-drop интерфейс</li>
+                            <li>Расширенная статистика и аналитика</li>
+                            <li>5 типов интерактивных графиков</li>
+                            <li>Экспорт результатов в CSV и Excel</li>
+                            <li>Полностью адаптивный дизайн</li>
+                            <li>Работает оффлайн после загрузки</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            <div class="footer">
+                <p>Сделано с ❤️ Вичкановой Анастасией Андреевной — Умный журнал для 3 курса</p>
+            </div>
+        </div>
     </div>
-  </div>
-</section>
-      <div class="footer">
-        <p>Сделано с ❤️ Вичкановой Анастасией Андреевной — Умный журнал для 3 курса</p>
-      </div>
-    </div>
-  </div>
 
-  <!-- Material Icons -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  <script>
-    // --- Data model: array of objects ---
-    let data = [];
-    // default master subjects that should always remain available
-    const masterSubjects = [
-      'ИВТС',
-      'ЦОС',
-      'ИТ',
-      'ТЭС',
-      'КПК',
-      'Философия',
-      'Криптография',
-      'Антенны',
-      'Физра'
-    ];
-    let subjects = masterSubjects.slice();
-    let selectedIndex = null;
-    let chartInstances = {
-      radar: null,
-      doughnut: null,
-      bar: null,
-      line: null,
-      heatmap: null
-    };
-    let currentChartType = 'performance';
+    <script>
+        // --- Data model: array of objects ---
+        let data = [];
+        // default master subjects that should always remain available
+        const masterSubjects = [
+            'ИВТС',
+            'ЦОС',
+            'ИТ',
+            'ТЭС',
+            'КПК',
+            'Философия',
+            'Криптография',
+            'Антенны',
+            'Физра'
+        ];
+        let subjects = masterSubjects.slice();
+        let selectedIndex = null;
+        let chartInstances = {
+            radar: null,
+            doughnut: null,
+            bar: null,
+            line: null,
+            heatmap: null
+        };
+        let currentChartType = 'performance';
 
-    // Helpers
-    function parseCSV(text, sep=','){
-      const lines = text.split(/\r?\n/).filter(l=>l.trim().length>0);
-      if(lines.length===0) return [];
-      const headers = lines[0].split(sep).map(h=>h.trim());
-      return lines.slice(1).map(line=>{
-        // handle quoted commas
-        const parts = line.match(/(?:"[^"]*"|[^,])+/g) || line.split(sep);
-        const clean = parts.map(p=> p.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
-        const obj = {};
-        headers.forEach((h,i)=>obj[h]=clean[i] ? clean[i].trim() : '');
-        return obj;
-      });
-    }
-
-    // merge found subjects with masterSubjects, keep order: masterSubjects first, then new ones
-    function updateSubjectsFromData(){
-      if(data.length===0){ subjects = masterSubjects.slice(); return; }
-      // find keys from all rows
-      const found = new Set();
-      data.forEach(r=> Object.keys(r).forEach(k=>{ if(!['Group','Class','LastName','FirstName','Patronymic'].includes(k) && k) found.add(k); }));
-      // create merged array preserving masterSubjects order and appending any new found subjects (in alphabetical order to be deterministic)
-      const foundArr = Array.from(found).filter(s=> !masterSubjects.includes(s)).sort();
-      subjects = masterSubjects.slice();
-      foundArr.forEach(s=> subjects.push(s));
-    }
-
-    function renderTable(containerId, editable=false){
-      const container = document.getElementById(containerId);
-      if(!container) return;
-      if(data.length===0){ container.innerHTML = '<div class="muted small">Пока нет данных. Загрузите файл или добавьте запись.</div>'; return; }
-      const table = document.createElement('table');
-      table.className = 'table';
-      const thead = document.createElement('thead');
-      const headerRow = document.createElement('tr');
-      ['#','Group','Фамилия','Имя','Отчество',...subjects].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; headerRow.appendChild(th); });
-      thead.appendChild(headerRow);
-      const tbody = document.createElement('tbody');
-      data.forEach((row,i)=>{
-        const tr = document.createElement('tr');
-        tr.dataset.index = i;
-        if (editable) {
-          tr.addEventListener('click', ()=>{ selectRow(i); });
+        // Helpers
+        function parseCSV(text, sep = ',') {
+            const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+            if (lines.length === 0) return [];
+            const headers = lines[0].split(sep).map(h => h.trim());
+            return lines.slice(1).map(line => {
+                // handle quoted commas
+                const parts = line.match(/(?:"[^"]*"|[^,])+/g) || line.split(sep);
+                const clean = parts.map(p => p.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+                const obj = {};
+                headers.forEach((h, i) => obj[h] = clean[i] ? clean[i].trim() : '');
+                return obj;
+            });
         }
-        const cols = [i+1,row.Group,row.LastName,row.FirstName,row.Patronymic, ...subjects.map(s=>row[s]===undefined?(''):row[s])];
-        cols.forEach(c=>{ const td=document.createElement('td'); td.textContent=c; tr.appendChild(td); });
-        tbody.appendChild(tr);
-      });
-      table.appendChild(thead); table.appendChild(tbody);
-      container.innerHTML = '';
-      container.appendChild(table);
-    }
 
-    function selectRow(i){ 
-      selectedIndex = i; 
-      // populate edit inputs
-      const r = data[i]; 
-      document.getElementById('input_group').value = r.Group || ''; 
-      document.getElementById('input_last').value = r.LastName || ''; 
-      document.getElementById('input_first').value = r.FirstName || ''; 
-      document.getElementById('input_patron').value = r.Patronymic || '';
-      subjects.forEach((s,idx)=>{ 
-        const el = document.getElementById('subj_'+idx); 
-        if(el) el.value = r[s]===undefined?'':r[s]; 
-      });
-      // highlight selected
-      const rows = document.querySelectorAll('#edit_table_wrapper table tbody tr'); 
-      rows.forEach(tr=>tr.style.background=''); 
-      const sel = document.querySelector('#edit_table_wrapper table tbody tr[data-index="'+i+'"]'); 
-      if(sel) sel.style.background='rgba(181, 234, 215, 0.4)';
-    }
+        // merge found subjects with masterSubjects, keep order: masterSubjects first, then new ones
+        function updateSubjectsFromData() {
+            if (data.length === 0) { subjects = masterSubjects.slice(); return; }
+            // find keys from all rows
+            const found = new Set();
+            data.forEach(r => Object.keys(r).forEach(k => { if (!['Group', 'Class', 'LastName', 'FirstName', 'Patronymic'].includes(k) && k) found.add(k); }));
+            // create merged array preserving masterSubjects order and appending any new found subjects (in alphabetical order to be deterministic)
+            const foundArr = Array.from(found).filter(s => !masterSubjects.includes(s)).sort();
+            subjects = masterSubjects.slice();
+            foundArr.forEach(s => subjects.push(s));
+        }
 
-    function renderEditSubjects(){
-      const wrap = document.getElementById('subjects_inputs');
-      // remember current values so we don't lose user input when subjects list changes
-      const prev = {};
-      subjects.forEach((s,idx)=>{ 
-        const el = document.getElementById('subj_'+idx); 
-        if(el) prev[s] = el.value; 
-      });
+        function renderTable(containerId, editable = false) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (data.length === 0) { container.innerHTML = '<div class="muted small">Пока нет данных. Загрузите файл или добавьте запись.</div>'; return; }
+            const table = document.createElement('table');
+            table.className = 'table';
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['#', 'Group', 'Фамилия', 'Имя', 'Отчество', ...subjects].forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
+            thead.appendChild(headerRow);
+            const tbody = document.createElement('tbody');
+            data.forEach((row, i) => {
+                const tr = document.createElement('tr');
+                tr.dataset.index = i;
+                if (editable) {
+                    tr.addEventListener('click', () => { selectRow(i); });
+                }
+                const cols = [i + 1, row.Group, row.LastName, row.FirstName, row.Patronymic, ...subjects.map(s => row[s] === undefined ? ('') : row[s])];
+                cols.forEach(c => { const td = document.createElement('td'); td.textContent = c; tr.appendChild(td); });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(thead); table.appendChild(tbody);
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
 
-      wrap.innerHTML=''; 
-      subjects.forEach((s,idx)=>{
-        const div = document.createElement('div'); 
-        div.className = 'form-col';
-        const label = document.createElement('label'); 
-        label.className='form-label'; 
-        label.textContent=s; 
-        const input = document.createElement('input'); 
-        input.type='number'; 
-        input.id='subj_'+idx; 
-        input.min=2; 
-        input.max=5; 
-        input.placeholder='оценка'; 
-        input.className = 'form-control';
-        // restore previous value if available
-        if(prev[s]!==undefined) input.value = prev[s];
-        div.appendChild(label); 
-        div.appendChild(input); 
-        wrap.appendChild(div);
-      });
-    }
+        function selectRow(i) {
+            selectedIndex = i;
+            // populate edit inputs
+            const r = data[i];
+            document.getElementById('input_group').value = r.Group || '';
+            document.getElementById('input_last').value = r.LastName || '';
+            document.getElementById('input_first').value = r.FirstName || '';
+            document.getElementById('input_patron').value = r.Patronymic || '';
+            subjects.forEach((s, idx) => {
+                const el = document.getElementById('subj_' + idx);
+                if (el) el.value = r[s] === undefined ? '' : r[s];
+            });
+            // highlight selected
+            const rows = document.querySelectorAll('#edit_table_wrapper table tbody tr');
+            rows.forEach(tr => tr.style.background = '');
+            const sel = document.querySelector('#edit_table_wrapper table tbody tr[data-index="' + i + '"]');
+            if (sel) sel.style.background = 'rgba(181, 234, 215, 0.4)';
+        }
 
-    function addStudent(){
-      const obj = { 
-        Group: document.getElementById('input_group').value||'3 курс', 
-        LastName: document.getElementById('input_last').value||'', 
-        FirstName: document.getElementById('input_first').value||'', 
-        Patronymic: document.getElementById('input_patron').value||'' 
-      };
-      subjects.forEach((s,idx)=>{ 
-        const el = document.getElementById('subj_'+idx); 
-        const v = el?el.value:''; 
-        obj[s]= v?parseInt(v):''; 
-      });
-      data.push(obj); 
-      refreshAll();
-    }
+        function renderEditSubjects() {
+            const wrap = document.getElementById('subjects_inputs');
+            // remember current values so we don't lose user input when subjects list changes
+            const prev = {};
+            subjects.forEach((s, idx) => {
+                const el = document.getElementById('subj_' + idx);
+                if (el) prev[s] = el.value;
+            });
 
-    function updateStudent(){ 
-      if(selectedIndex===null){ 
-        alert('Выберите строку в таблице для редактирования.'); 
-        return; 
-      }
-      const obj = data[selectedIndex]; 
-      obj.Group = document.getElementById('input_group').value||obj.Group; 
-      obj.LastName = document.getElementById('input_last').value||obj.LastName; 
-      obj.FirstName = document.getElementById('input_first').value||obj.FirstName; 
-      obj.Patronymic = document.getElementById('input_patron').value||obj.Patronymic;
-      subjects.forEach((s,idx)=>{ 
-        const el = document.getElementById('subj_'+idx); 
-        const v = el?el.value:''; 
-        obj[s]= v?parseInt(v):''; 
-      }); 
-      data[selectedIndex]=obj; 
-      refreshAll(); 
-    }
+            wrap.innerHTML = '';
+            subjects.forEach((s, idx) => {
+                const div = document.createElement('div');
+                div.className = 'form-col';
+                const label = document.createElement('label');
+                label.className = 'form-label';
+                label.textContent = s;
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = 'subj_' + idx;
+                input.min = 2;
+                input.max = 5;
+                input.placeholder = 'оценка';
+                input.className = 'form-control';
+                // restore previous value if available
+                if (prev[s] !== undefined) input.value = prev[s];
+                div.appendChild(label);
+                div.appendChild(input);
+                wrap.appendChild(div);
+            });
+        }
 
-    function deleteStudent(){ 
-      if(selectedIndex===null){ 
-        alert('Выберите строку для удаления.'); 
-        return; 
-      } 
-      if(!confirm('Удалить выбранного студента?')) return; 
-      data.splice(selectedIndex,1); 
-      selectedIndex=null; 
-      refreshAll(); 
-    }
+        function addStudent() {
+            const obj = {
+                Group: document.getElementById('input_group').value || '3 курс',
+                LastName: document.getElementById('input_last').value || '',
+                FirstName: document.getElementById('input_first').value || '',
+                Patronymic: document.getElementById('input_patron').value || ''
+            };
+            subjects.forEach((s, idx) => {
+                const el = document.getElementById('subj_' + idx);
+                const v = el ? el.value : '';
+                obj[s] = v ? parseInt(v) : '';
+            });
+            data.push(obj);
+            refreshAll();
+        }
 
-    function saveCSV(){ 
-      if(data.length===0){ 
-        alert('Нет данных для сохранения'); 
-        return; 
-      }
-      // headers
-      const headers = ['Group','LastName','FirstName','Patronymic', ...subjects];
-      const rows = data.map(r=> headers.map(h=> (r[h]===undefined?'':r[h]) ));
-      const csv = [headers.join(','), ...rows.map(r=> r.map(v=> '"'+(String(v).replace(/"/g,'""'))+'"').join(','))].join('\n');
-      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-      const a = document.createElement('a'); 
-      a.href = URL.createObjectURL(blob); 
-      a.download = 'gradebook_3_course.csv'; 
-      document.body.appendChild(a); 
-      a.click(); 
-      a.remove();
-    }
+        function updateStudent() {
+            if (selectedIndex === null) {
+                alert('Выберите строку в таблице для редактирования.');
+                return;
+            }
+            const obj = data[selectedIndex];
+            obj.Group = document.getElementById('input_group').value || obj.Group;
+            obj.LastName = document.getElementById('input_last').value || obj.LastName;
+            obj.FirstName = document.getElementById('input_first').value || obj.FirstName;
+            obj.Patronymic = document.getElementById('input_patron').value || obj.Patronymic;
+            subjects.forEach((s, idx) => {
+                const el = document.getElementById('subj_' + idx);
+                const v = el ? el.value : '';
+                obj[s] = v ? parseInt(v) : '';
+            });
+            data[selectedIndex] = obj;
+            refreshAll();
+        }
 
-    function exportXLSX(){ 
-      if(data.length===0){ 
-        alert('Нет данных'); 
-        return; 
-      }
-      const header = ['Group','LastName','FirstName','Patronymic', ...subjects];
-      // convert data to array of objects with all headers present
-      const aoa = data.map(r=> {
-        const row = {};
-        header.forEach(h=> row[h] = r[h]===undefined? '': r[h]);
-        return row;
-      });
-      const wb = XLSX.utils.book_new(); 
-      const ws = XLSX.utils.json_to_sheet(aoa, {header: header}); 
-      XLSX.utils.book_append_sheet(wb, ws, 'Grades'); 
-      XLSX.writeFile(wb, 'gradebook_3_course.xlsx');
-    }
+        function deleteStudent() {
+            if (selectedIndex === null) {
+                alert('Выберите строку для удаления.');
+                return;
+            }
+            if (!confirm('Удалить выбранного студента?')) return;
+            data.splice(selectedIndex, 1);
+            selectedIndex = null;
+            refreshAll();
+        }
 
-    function computeStats(filterGroup='ALL', filterSubject='ALL'){
-      // build long array of {Group,Subject,Grade}
-      const long = [];
-      data.forEach(r=>{
-        subjects.forEach(s=>{ 
-          const g = r[s]; 
-          if(g!==undefined && g!=='') 
-            long.push({Group: r.Group||'', Subject: s, Grade: Number(g)}); 
+        function saveCSV() {
+            if (data.length === 0) {
+                alert('Нет данных для сохранения');
+                return;
+            }
+            // headers
+            const headers = ['Group', 'LastName', 'FirstName', 'Patronymic', ...subjects];
+            const rows = data.map(r => headers.map(h => (r[h] === undefined ? '' : r[h])));
+            const csv = [headers.join(','), ...rows.map(r => r.map(v => '"' + (String(v).replace(/"/g, '""')) + '"').join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'gradebook_3_course.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function exportXLSX() {
+            if (data.length === 0) {
+                alert('Нет данных');
+                return;
+            }
+            const header = ['Group', 'LastName', 'FirstName', 'Patronymic', ...subjects];
+            // convert data to array of objects with all headers present
+            const aoa = data.map(r => {
+                const row = {};
+                header.forEach(h => row[h] = r[h] === undefined ? '' : r[h]);
+                return row;
+            });
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(aoa, { header: header });
+            XLSX.utils.book_append_sheet(wb, ws, 'Grades');
+            XLSX.writeFile(wb, 'gradebook_3_course.xlsx');
+        }
+
+        function computeStats(filterGroup = 'ALL', filterSubject = 'ALL') {
+            // build long array of {Group,Subject,Grade}
+            const long = [];
+            data.forEach(r => {
+                subjects.forEach(s => {
+                    const g = r[s];
+                    if (g !== undefined && g !== '')
+                        long.push({ Group: r.Group || '', Subject: s, Grade: Number(g) });
+                });
+            });
+            let arr = long;
+            if (filterGroup !== 'ALL') arr = arr.filter(x => x.Group === filterGroup);
+            if (filterSubject !== 'ALL') arr = arr.filter(x => x.Subject === filterSubject);
+            if (arr.length === 0) return [];
+            // group by Subject and Group
+            const bySG = {};
+            arr.forEach(x => {
+                const key = x.Subject + '|' + x.Group;
+                if (!bySG[key]) bySG[key] = [];
+                bySG[key].push(x.Grade);
+            });
+            const rows = [];
+            for (const key in bySG) {
+                const [subject, group] = key.split('|');
+                const grades = bySG[key].slice();
+                grades.sort((a, b) => a - b);
+                const mean = (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(2);
+                const median = (grades.length % 2 === 1) ? grades[(grades.length - 1) / 2] : ((grades[grades.length / 2 - 1] + grades[grades.length / 2]) / 2).toFixed(2);
+                // distribution
+                const counts = {};
+                grades.forEach(g => counts[g] = (counts[g] || 0) + 1);
+                for (const grade in counts) {
+                    rows.push({
+                        Subject: subject,
+                        Group: group,
+                        Mean: mean,
+                        Median: median,
+                        Grade: grade,
+                        Count: counts[grade],
+                        Percent: ((counts[grade] / grades.length) * 100).toFixed(2),
+                        Total: grades.length
+                    });
+                }
+            }
+            return rows;
+        }
+
+        // НОВЫЕ ФУНКЦИИ ДЛЯ РАСШИРЕННОЙ СТАТИСТИКИ
+        function computeAdvancedStats(filterGroup = 'ALL', filterSubject = 'ALL') {
+            let filteredData = data;
+
+            if (filterGroup !== 'ALL') {
+                filteredData = filteredData.filter(item => item.Group === filterGroup);
+            }
+
+            const stats = {
+                totalStudents: filteredData.length,
+                gradeDistribution: { 2: 0, 3: 0, 4: 0, 5: 0 },
+                subjectAverages: {},
+                overallAverage: 0,
+                maxGrade: 0,
+                minGrade: 5,
+                successRate: 0,
+                subjectPerformance: {},
+                heatmapData: {}
+            };
+
+            let totalGrades = 0;
+            let gradeCount = 0;
+
+            // Вычисляем распределение оценок и средние по предметам
+            filteredData.forEach(student => {
+                subjects.forEach(subject => {
+                    if (filterSubject === 'ALL' || subject === filterSubject) {
+                        const grade = student[subject];
+                        if (grade && grade >= 2 && grade <= 5) {
+                            // Распределение оценок
+                            stats.gradeDistribution[grade]++;
+
+                            // Средние по предметам
+                            if (!stats.subjectAverages[subject]) {
+                                stats.subjectAverages[subject] = { sum: 0, count: 0 };
+                            }
+                            stats.subjectAverages[subject].sum += grade;
+                            stats.subjectAverages[subject].count++;
+
+                            // Heatmap данные
+                            if (!stats.heatmapData[subject]) {
+                                stats.heatmapData[subject] = { 2: 0, 3: 0, 4: 0, 5: 0 };
+                            }
+                            stats.heatmapData[subject][grade]++;
+
+                            // Общая статистика
+                            totalGrades += grade;
+                            gradeCount++;
+                            stats.maxGrade = Math.max(stats.maxGrade, grade);
+                            stats.minGrade = Math.min(stats.minGrade, grade);
+                        }
+                    }
+                });
+            });
+
+            // Вычисляем средние значения
+            stats.overallAverage = gradeCount > 0 ? (totalGrades / gradeCount).toFixed(2) : 0;
+
+            // Вычисляем успеваемость (процент оценок 4 и 5)
+            const goodGrades = stats.gradeDistribution[4] + stats.gradeDistribution[5];
+            const totalValidGrades = Object.values(stats.gradeDistribution).reduce((a, b) => a + b, 0);
+            stats.successRate = totalValidGrades > 0 ? ((goodGrades / totalValidGrades) * 100).toFixed(1) : 0;
+
+            // Вычисляем производительность по предметам
+            Object.keys(stats.subjectAverages).forEach(subject => {
+                const data = stats.subjectAverages[subject];
+                stats.subjectPerformance[subject] = (data.sum / data.count).toFixed(2);
+            });
+
+            return stats;
+        }
+
+        function renderAdvancedCharts() {
+            const group = document.getElementById('chart_group').value;
+            const subject = document.getElementById('chart_subject').value;
+            const stats = computeAdvancedStats(group, subject);
+
+            // Обновляем круговые диаграммы
+            updateCircleCharts(stats);
+
+            // Обновляем распределение оценок
+            updateGradeDistribution(stats);
+
+            // Обновляем сравнения
+            updateComparisons(stats);
+
+            // Рендерим графики в зависимости от выбранного типа
+            switch (currentChartType) {
+                case 'performance':
+                    renderRadarChart(stats);
+                    break;
+                case 'distribution':
+                    renderDoughnutChart(stats);
+                    break;
+                case 'comparison':
+                    renderBarChart(stats);
+                    break;
+                case 'progress':
+                    renderLineChart(stats);
+                    break;
+                case 'heatmap':
+                    renderHeatmapChart(stats);
+                    break;
+            }
+        }
+
+        function updateCircleCharts(stats) {
+            // Средний балл (масштабируем до 5)
+            const avgGradePercent = (stats.overallAverage / 5) * 100;
+            document.getElementById('avg-grade-circle').style.setProperty('--fill-percentage', `${avgGradePercent}%`);
+            document.getElementById('avg-grade-value').textContent = stats.overallAverage;
+
+            // Успеваемость
+            document.getElementById('success-circle').style.setProperty('--fill-percentage', `${stats.successRate}%`);
+            document.getElementById('success-value').textContent = `${stats.successRate}%`;
+
+            // Общие показатели
+            document.getElementById('max-grade').textContent = stats.maxGrade;
+            document.getElementById('min-grade').textContent = stats.minGrade;
+            document.getElementById('total-students').textContent = stats.totalStudents;
+        }
+
+        function updateGradeDistribution(stats) {
+            const total = Object.values(stats.gradeDistribution).reduce((a, b) => a + b, 0);
+
+            if (total === 0) return;
+
+            // Проценты для каждой оценки
+            const excellentPercent = (stats.gradeDistribution[5] / total) * 100;
+            const goodPercent = (stats.gradeDistribution[4] / total) * 100;
+            const satisfactoryPercent = (stats.gradeDistribution[3] / total) * 100;
+            const failPercent = (stats.gradeDistribution[2] / total) * 100;
+
+            // Обновляем прогресс-бары
+            document.getElementById('excellent-bar').style.width = `${excellentPercent}%`;
+            document.getElementById('good-bar').style.width = `${goodPercent}%`;
+            document.getElementById('satisfactory-bar').style.width = `${satisfactoryPercent}%`;
+            document.getElementById('fail-bar').style.width = `${failPercent}%`;
+
+            // Обновляем значения
+            document.getElementById('excellent-value').textContent = `${excellentPercent.toFixed(1)}%`;
+            document.getElementById('good-value').textContent = `${goodPercent.toFixed(1)}%`;
+            document.getElementById('satisfactory-value').textContent = `${satisfactoryPercent.toFixed(1)}%`;
+            document.getElementById('fail-value').textContent = `${failPercent.toFixed(1)}%`;
+
+            // Обновляем распределение оценок
+            const distributionContainer = document.getElementById('grade-distribution');
+            distributionContainer.innerHTML = '';
+
+            [5, 4, 3, 2].forEach(grade => {
+                const percent = (stats.gradeDistribution[grade] / total) * 100;
+                const item = document.createElement('div');
+                item.className = 'grade-item';
+                item.innerHTML = `
+                                                                      <div class="grade-color grade-${grade}"></div>
+                                                                      <div class="grade-info">
+                                                                        <div>Оценка ${grade}</div>
+                                                                        <div class="grade-count">${stats.gradeDistribution[grade]} (${percent.toFixed(1)}%)</div>
+                                                                      </div>
+                                                                    `;
+                distributionContainer.appendChild(item);
+            });
+        }
+
+        function updateComparisons(stats) {
+            // Обновляем рейтинг предметов
+            const rankingContainer = document.getElementById('subject-ranking');
+            rankingContainer.innerHTML = '';
+
+            // Сортируем предметы по среднему баллу
+            const sortedSubjects = Object.entries(stats.subjectAverages)
+                .map(([subject, data]) => ({
+                    subject,
+                    average: (data.sum / data.count).toFixed(2),
+                    count: data.count
+                }))
+                .sort((a, b) => b.average - a.average);
+
+            sortedSubjects.forEach((item, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'subject-bar';
+                bar.innerHTML = `
+                                                                      <div class="subject-name">${item.subject}</div>
+                                                                      <div class="subject-progress">
+                                                                        <div class="subject-fill" style="width: ${(item.average / 5) * 100}%"></div>
+                                                                      </div>
+                                                                      <div class="subject-value">${item.average}</div>
+                                                                    `;
+                rankingContainer.appendChild(bar);
+            });
+        }
+
+        function renderRadarChart(stats) {
+            const ctx = document.getElementById('radar_chart').getContext('2d');
+
+            if (chartInstances.radar) {
+                chartInstances.radar.destroy();
+            }
+
+            const subjectLabels = Object.keys(stats.subjectAverages);
+            const subjectAverages = subjectLabels.map(subject =>
+                (stats.subjectAverages[subject].sum / stats.subjectAverages[subject].count).toFixed(2)
+            );
+
+            chartInstances.radar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: subjectLabels,
+                    datasets: [{
+                        label: 'Средний балл',
+                        data: subjectAverages,
+                        backgroundColor: 'rgba(255, 182, 193, 0.2)',
+                        borderColor: 'rgba(255, 182, 193, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(255, 182, 193, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(255, 182, 193, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Обновляем performance bars
+            const performanceContainer = document.getElementById('subject-performance');
+            performanceContainer.innerHTML = '';
+
+            subjectLabels.forEach((subject, index) => {
+                const average = subjectAverages[index];
+                const bar = document.createElement('div');
+                bar.className = 'subject-bar';
+                bar.innerHTML = `
+                                                                      <div class="subject-name">${subject}</div>
+                                                                      <div class="subject-progress">
+                                                                        <div class="subject-fill" style="width: ${(average / 5) * 100}%"></div>
+                                                                      </div>
+                                                                      <div class="subject-value">${average}</div>
+                                                                    `;
+                performanceContainer.appendChild(bar);
+            });
+        }
+
+        function renderDoughnutChart(stats) {
+            const ctx = document.getElementById('doughnut_chart').getContext('2d');
+
+            if (chartInstances.doughnut) {
+                chartInstances.doughnut.destroy();
+            }
+
+            chartInstances.doughnut = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Отлично (5)', 'Хорошо (4)', 'Удовлетворительно (3)', 'Неудовлетворительно (2)'],
+                    datasets: [{
+                        data: [
+                            stats.gradeDistribution[5],
+                            stats.gradeDistribution[4],
+                            stats.gradeDistribution[3],
+                            stats.gradeDistribution[2]
+                        ],
+                        backgroundColor: [
+                            'rgba(181, 234, 215, 0.8)',
+                            'rgba(199, 206, 234, 0.8)',
+                            'rgba(255, 218, 193, 0.8)',
+                            'rgba(255, 154, 162, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(181, 234, 215, 1)',
+                            'rgba(199, 206, 234, 1)',
+                            'rgba(255, 218, 193, 1)',
+                            'rgba(255, 154, 162, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function renderBarChart(stats) {
+            const ctx = document.getElementById('bar_chart').getContext('2d');
+
+            if (chartInstances.bar) {
+                chartInstances.bar.destroy();
+            }
+
+            const subjectLabels = Object.keys(stats.subjectAverages);
+            const subjectAverages = subjectLabels.map(subject =>
+                (stats.subjectAverages[subject].sum / stats.subjectAverages[subject].count).toFixed(2)
+            );
+
+            chartInstances.bar = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: subjectLabels,
+                    datasets: [{
+                        label: 'Средний балл',
+                        data: subjectAverages,
+                        backgroundColor: 'rgba(255, 182, 193, 0.7)',
+                        borderColor: 'rgba(255, 182, 193, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderLineChart(stats) {
+            const ctx = document.getElementById('line_chart').getContext('2d');
+
+            if (chartInstances.line) {
+                chartInstances.line.destroy();
+            }
+
+            // Для демонстрации создаем фиктивные данные прогресса
+            const months = ['Сен', 'Окт', 'Ноя', 'Дек', 'Янв', 'Фев'];
+            const progressData = [3.2, 3.5, 3.7, 3.9, 4.1, 4.2];
+
+            chartInstances.line = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Средний балл',
+                        data: progressData,
+                        backgroundColor: 'rgba(181, 234, 215, 0.2)',
+                        borderColor: 'rgba(181, 234, 215, 1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5
+                        }
+                    }
+                }
+            });
+
+            // Обновляем показатели прогресса
+            document.getElementById('progress-circle').style.setProperty('--fill-percentage', '75%');
+            document.getElementById('progress-value').textContent = '75%';
+            document.getElementById('quality-circle').style.setProperty('--fill-percentage', '68%');
+            document.getElementById('quality-value').textContent = '68%';
+
+            document.getElementById('improved-count').textContent = '18';
+            document.getElementById('declined-count').textContent = '3';
+            document.getElementById('stable-count').textContent = '24';
+        }
+
+        function renderHeatmapChart(stats) {
+            const ctx = document.getElementById('heatmap_chart').getContext('2d');
+
+            if (chartInstances.heatmap) {
+                chartInstances.heatmap.destroy();
+            }
+
+            const subjectLabels = Object.keys(stats.heatmapData);
+            const gradeLabels = ['2', '3', '4', '5'];
+
+            // Создаем данные для heatmap
+            const heatmapData = [];
+            subjectLabels.forEach(subject => {
+                const subjectData = [];
+                gradeLabels.forEach(grade => {
+                    subjectData.push(stats.heatmapData[subject][grade] || 0);
+                });
+                heatmapData.push(subjectData);
+            });
+
+            chartInstances.heatmap = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: subjectLabels,
+                    datasets: gradeLabels.map((grade, index) => ({
+                        label: `Оценка ${grade}`,
+                        data: subjectLabels.map(subject => stats.heatmapData[subject][grade] || 0),
+                        backgroundColor: [
+                            'rgba(255, 154, 162, 0.8)',
+                            'rgba(255, 218, 193, 0.8)',
+                            'rgba(199, 206, 234, 0.8)',
+                            'rgba(181, 234, 215, 0.8)'
+                        ][index],
+                        borderColor: [
+                            'rgba(255, 154, 162, 1)',
+                            'rgba(255, 218, 193, 1)',
+                            'rgba(199, 206, 234, 1)',
+                            'rgba(181, 234, 215, 1)'
+                        ][index],
+                        borderWidth: 1
+                    }))
+                },
+                options: {
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Обновляем легенду heatmap
+            const legendContainer = document.getElementById('heatmap-legend');
+            legendContainer.innerHTML = '';
+
+            gradeLabels.forEach((grade, index) => {
+                const item = document.createElement('div');
+                item.className = `heatmap-item heatmap-grade-${grade}`;
+                item.innerHTML = `
+                                                                      <div style="font-weight: 600;">Оценка ${grade}</div>
+                                                                      <div>${Object.values(stats.heatmapData).reduce((sum, subject) => sum + (subject[grade] || 0), 0)} студентов</div>
+                                                                    `;
+                legendContainer.appendChild(item);
+            });
+
+            // Обновляем дополнительные показатели
+            document.getElementById('group-avg-value').textContent = stats.overallAverage;
+            document.getElementById('group-avg-bar').style.width = `${(stats.overallAverage / 5) * 100}%`;
+
+            // Находим лучший и слабый предмет
+            const subjectAverages = Object.entries(stats.subjectAverages)
+                .map(([subject, data]) => ({
+                    subject,
+                    average: (data.sum / data.count).toFixed(2)
+                }))
+                .sort((a, b) => b.average - a.average);
+
+            if (subjectAverages.length > 0) {
+                const bestSubject = subjectAverages[0];
+                const weakSubject = subjectAverages[subjectAverages.length - 1];
+
+                document.getElementById('best-subject-value').textContent = `${bestSubject.subject} (${bestSubject.average})`;
+                document.getElementById('best-subject-bar').style.width = `${(bestSubject.average / 5) * 100}%`;
+
+                document.getElementById('weak-subject-value').textContent = `${weakSubject.subject} (${weakSubject.average})`;
+                document.getElementById('weak-subject-bar').style.width = `${(weakSubject.average / 5) * 100}%`;
+            }
+        }
+
+        function refreshSelectors() {
+            const groups = Array.from(new Set(data.map(r => r.Group))).filter(x => x);
+            const groupSelIds = ['stats_group', 'chart_group'];
+            groupSelIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const val = el.value;
+                el.innerHTML = '';
+                const allOpt = document.createElement('option');
+                allOpt.value = 'ALL';
+                allOpt.textContent = 'ALL';
+                el.appendChild(allOpt);
+                groups.forEach(g => {
+                    const o = document.createElement('option');
+                    o.value = g;
+                    o.textContent = g;
+                    el.appendChild(o);
+                });
+                if (val) el.value = val;
+            });
+            // subjects
+            const subjectSelIds = ['stats_subject', 'chart_subject'];
+            subjectSelIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const val = el.value;
+                el.innerHTML = '';
+                const allOpt = document.createElement('option');
+                allOpt.value = 'ALL';
+                allOpt.textContent = 'ALL';
+                el.appendChild(allOpt);
+                subjects.forEach(s => {
+                    const o = document.createElement('option');
+                    o.value = s;
+                    o.textContent = s;
+                    el.appendChild(o);
+                });
+                if (val) el.value = val;
+            });
+        }
+
+        function refreshAll() {
+            updateSubjectsFromData();
+            renderEditSubjects();
+            renderTable('table_wrapper');
+            renderTable('edit_table_wrapper', true);
+            refreshSelectors();
+            renderStatsTable();
+            renderAdvancedCharts();
+        }
+
+        function renderStatsTable() {
+            const groupSel = document.getElementById('stats_group');
+            const subjSel = document.getElementById('stats_subject');
+            const rows = computeStats(groupSel.value || 'ALL', subjSel.value || 'ALL');
+            const wrapper = document.getElementById('stats_table_wrapper');
+            if (!rows || rows.length === 0) {
+                wrapper.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--gray);">Нет данных для статистики</div>';
+                return;
+            }
+            const table = document.createElement('table');
+            table.className = 'table';
+            const thead = document.createElement('thead');
+            const hrow = document.createElement('tr');
+            ['Subject', 'Group', 'Mean', 'Median', 'Grade', 'Count', 'Percent', 'Total'].forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                hrow.appendChild(th);
+            });
+            thead.appendChild(hrow);
+            const tbody = document.createElement('tbody');
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                ['Subject', 'Group', 'Mean', 'Median', 'Grade', 'Count', 'Percent', 'Total'].forEach(k => {
+                    const td = document.createElement('td');
+                    td.textContent = r[k];
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            wrapper.innerHTML = '';
+            wrapper.appendChild(table);
+        }
+
+        // File input handling
+        document.getElementById('file_input').addEventListener('change', async (e) => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const name = f.name.toLowerCase();
+            if (name.endsWith('.csv') || name.endsWith('.txt')) {
+                const text = await f.text();
+                const parsed = parseCSV(text, ',');
+                data = parsed.map(r => {
+                    // ensure keys
+                    const obj = {
+                        Group: r.Group || r.Class || '',
+                        LastName: r.LastName || '',
+                        FirstName: r.FirstName || '',
+                        Patronymic: r.Patronymic || ''
+                    };
+                    Object.keys(r).forEach(k => {
+                        if (!['Group', 'Class', 'LastName', 'FirstName', 'Patronymic'].includes(k) && r[k] !== undefined)
+                            obj[k] = r[k];
+                    });
+                    return obj;
+                });
+                updateSubjectsFromData();
+                refreshAll();
+            } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+                const ab = await f.arrayBuffer();
+                const wb = XLSX.read(ab, { type: 'array' });
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
+                data = json.map(r => {
+                    const obj = {
+                        Group: r.Group || r.Class || '',
+                        LastName: r.LastName || '',
+                        FirstName: r.FirstName || '',
+                        Patronymic: r.Patronymic || ''
+                    };
+                    Object.keys(r).forEach(k => {
+                        if (!['Group', 'Class', 'LastName', 'FirstName', 'Patronymic'].includes(k) && r[k] !== undefined)
+                            obj[k] = r[k];
+                    });
+                    return obj;
+                });
+                updateSubjectsFromData();
+                refreshAll();
+            }
         });
-      });
-      let arr = long;
-      if(filterGroup!=='ALL') arr = arr.filter(x=>x.Group===filterGroup);
-      if(filterSubject!=='ALL') arr = arr.filter(x=>x.Subject===filterSubject);
-      if(arr.length===0) return [];
-      // group by Subject and Group
-      const bySG = {};
-      arr.forEach(x=>{ 
-        const key = x.Subject+'|'+x.Group; 
-        if(!bySG[key]) bySG[key]=[]; 
-        bySG[key].push(x.Grade); 
-      });
-      const rows = [];
-      for(const key in bySG){ 
-        const [subject, group] = key.split('|'); 
-        const grades = bySG[key].slice(); 
-        grades.sort((a,b)=>a-b); 
-        const mean = (grades.reduce((a,b)=>a+b,0)/grades.length).toFixed(2); 
-        const median = (grades.length%2===1)? grades[(grades.length-1)/2] : ((grades[grades.length/2-1]+grades[grades.length/2])/2).toFixed(2);
-        // distribution
-        const counts = {}; 
-        grades.forEach(g=> counts[g] = (counts[g] || 0) + 1);
-        for(const grade in counts){ 
-          rows.push({
-            Subject:subject, 
-            Group:group, 
-            Mean:mean, 
-            Median:median, 
-            Grade:grade, 
-            Count:counts[grade], 
-            Percent: ((counts[grade]/grades.length)*100).toFixed(2), 
-            Total:grades.length
-          }); 
-        }
-      }
-      return rows;
-    }
 
-    // НОВЫЕ ФУНКЦИИ ДЛЯ РАСШИРЕННОЙ СТАТИСТИКИ
-    function computeAdvancedStats(filterGroup = 'ALL', filterSubject = 'ALL') {
-      let filteredData = data;
-      
-      if (filterGroup !== 'ALL') {
-        filteredData = filteredData.filter(item => item.Group === filterGroup);
-      }
-      
-      const stats = {
-        totalStudents: filteredData.length,
-        gradeDistribution: {2: 0, 3: 0, 4: 0, 5: 0},
-        subjectAverages: {},
-        overallAverage: 0,
-        maxGrade: 0,
-        minGrade: 5,
-        successRate: 0,
-        subjectPerformance: {},
-        heatmapData: {}
-      };
-      
-      let totalGrades = 0;
-      let gradeCount = 0;
-      
-      // Вычисляем распределение оценок и средние по предметам
-      filteredData.forEach(student => {
-        subjects.forEach(subject => {
-          if (filterSubject === 'ALL' || subject === filterSubject) {
-            const grade = student[subject];
-            if (grade && grade >= 2 && grade <= 5) {
-              // Распределение оценок
-              stats.gradeDistribution[grade]++;
-              
-              // Средние по предметам
-              if (!stats.subjectAverages[subject]) {
-                stats.subjectAverages[subject] = { sum: 0, count: 0 };
-              }
-              stats.subjectAverages[subject].sum += grade;
-              stats.subjectAverages[subject].count++;
-              
-              // Heatmap данные
-              if (!stats.heatmapData[subject]) {
-                stats.heatmapData[subject] = {2: 0, 3: 0, 4: 0, 5: 0};
-              }
-              stats.heatmapData[subject][grade]++;
-              
-              // Общая статистика
-              totalGrades += grade;
-              gradeCount++;
-              stats.maxGrade = Math.max(stats.maxGrade, grade);
-              stats.minGrade = Math.min(stats.minGrade, grade);
+        document.getElementById('add_student').addEventListener('click', addStudent);
+        document.getElementById('update_student').addEventListener('click', updateStudent);
+        document.getElementById('delete_student').addEventListener('click', deleteStudent);
+        document.getElementById('save_csv').addEventListener('click', saveCSV);
+        document.getElementById('export_xlsx').addEventListener('click', exportXLSX);
+
+        // Tabs
+        document.querySelectorAll('.nav-link').forEach(t => t.addEventListener('click', () => {
+            document.querySelectorAll('.nav-link').forEach(x => x.classList.remove('active'));
+            t.classList.add('active');
+            const sel = t.getAttribute('data-tab');
+            document.querySelectorAll('section.card').forEach(s => s.style.display = (s.id === sel ? 'block' : 'none'));
+
+            // Обновляем заголовок страницы
+            const pageTitle = document.getElementById('page-title');
+            switch (sel) {
+                case 'upload':
+                    pageTitle.textContent = 'Загрузка оценок';
+                    break;
+                case 'edit':
+                    pageTitle.textContent = 'Редактирование журнала';
+                    break;
+                case 'stats_table':
+                    pageTitle.textContent = 'Статистика успеваемости';
+                    break;
+                case 'stats_chart':
+                    pageTitle.textContent = 'Интерактивная аналитика';
+                    break;
+                case 'help':
+                    pageTitle.textContent = 'Помощь по использованию';
+                    break;
+                case 'about':
+                    pageTitle.textContent = 'О программе';
+                    break;
             }
-          }
+        }));
+
+        // Stats controls
+        document.getElementById('recalc_stats').addEventListener('click', renderStatsTable);
+        document.getElementById('replot').addEventListener('click', renderAdvancedCharts);
+
+        // File input label click
+        document.getElementById('file_upload_area').addEventListener('click', () => {
+            document.getElementById('file_input').click();
         });
-      });
-      
-      // Вычисляем средние значения
-      stats.overallAverage = gradeCount > 0 ? (totalGrades / gradeCount).toFixed(2) : 0;
-      
-      // Вычисляем успеваемость (процент оценок 4 и 5)
-      const goodGrades = stats.gradeDistribution[4] + stats.gradeDistribution[5];
-      const totalValidGrades = Object.values(stats.gradeDistribution).reduce((a, b) => a + b, 0);
-      stats.successRate = totalValidGrades > 0 ? ((goodGrades / totalValidGrades) * 100).toFixed(1) : 0;
-      
-      // Вычисляем производительность по предметам
-      Object.keys(stats.subjectAverages).forEach(subject => {
-        const data = stats.subjectAverages[subject];
-        stats.subjectPerformance[subject] = (data.sum / data.count).toFixed(2);
-      });
-      
-      return stats;
-    }
 
-    function renderAdvancedCharts() {
-      const group = document.getElementById('chart_group').value;
-      const subject = document.getElementById('chart_subject').value;
-      const stats = computeAdvancedStats(group, subject);
-      
-      // Обновляем круговые диаграммы
-      updateCircleCharts(stats);
-      
-      // Обновляем распределение оценок
-      updateGradeDistribution(stats);
-      
-      // Обновляем сравнения
-      updateComparisons(stats);
-      
-      // Рендерим графики в зависимости от выбранного типа
-      switch(currentChartType) {
-        case 'performance':
-          renderRadarChart(stats);
-          break;
-        case 'distribution':
-          renderDoughnutChart(stats);
-          break;
-        case 'comparison':
-          renderBarChart(stats);
-          break;
-        case 'progress':
-          renderLineChart(stats);
-          break;
-        case 'heatmap':
-          renderHeatmapChart(stats);
-          break;
-      }
-    }
+        // Drag and drop functionality
+        const fileUploadArea = document.getElementById('file_upload_area');
 
-    function updateCircleCharts(stats) {
-      // Средний балл (масштабируем до 5)
-      const avgGradePercent = (stats.overallAverage / 5) * 100;
-      document.getElementById('avg-grade-circle').style.setProperty('--fill-percentage', `${avgGradePercent}%`);
-      document.getElementById('avg-grade-value').textContent = stats.overallAverage;
-      
-      // Успеваемость
-      document.getElementById('success-circle').style.setProperty('--fill-percentage', `${stats.successRate}%`);
-      document.getElementById('success-value').textContent = `${stats.successRate}%`;
-      
-      // Общие показатели
-      document.getElementById('max-grade').textContent = stats.maxGrade;
-      document.getElementById('min-grade').textContent = stats.minGrade;
-      document.getElementById('total-students').textContent = stats.totalStudents;
-    }
-
-    function updateGradeDistribution(stats) {
-      const total = Object.values(stats.gradeDistribution).reduce((a, b) => a + b, 0);
-      
-      if (total === 0) return;
-      
-      // Проценты для каждой оценки
-      const excellentPercent = (stats.gradeDistribution[5] / total) * 100;
-      const goodPercent = (stats.gradeDistribution[4] / total) * 100;
-      const satisfactoryPercent = (stats.gradeDistribution[3] / total) * 100;
-      const failPercent = (stats.gradeDistribution[2] / total) * 100;
-      
-      // Обновляем прогресс-бары
-      document.getElementById('excellent-bar').style.width = `${excellentPercent}%`;
-      document.getElementById('good-bar').style.width = `${goodPercent}%`;
-      document.getElementById('satisfactory-bar').style.width = `${satisfactoryPercent}%`;
-      document.getElementById('fail-bar').style.width = `${failPercent}%`;
-      
-      // Обновляем значения
-      document.getElementById('excellent-value').textContent = `${excellentPercent.toFixed(1)}%`;
-      document.getElementById('good-value').textContent = `${goodPercent.toFixed(1)}%`;
-      document.getElementById('satisfactory-value').textContent = `${satisfactoryPercent.toFixed(1)}%`;
-      document.getElementById('fail-value').textContent = `${failPercent.toFixed(1)}%`;
-      
-      // Обновляем распределение оценок
-      const distributionContainer = document.getElementById('grade-distribution');
-      distributionContainer.innerHTML = '';
-      
-      [5, 4, 3, 2].forEach(grade => {
-        const percent = (stats.gradeDistribution[grade] / total) * 100;
-        const item = document.createElement('div');
-        item.className = 'grade-item';
-        item.innerHTML = `
-          <div class="grade-color grade-${grade}"></div>
-          <div class="grade-info">
-            <div>Оценка ${grade}</div>
-            <div class="grade-count">${stats.gradeDistribution[grade]} (${percent.toFixed(1)}%)</div>
-          </div>
-        `;
-        distributionContainer.appendChild(item);
-      });
-    }
-
-    function updateComparisons(stats) {
-      // Обновляем рейтинг предметов
-      const rankingContainer = document.getElementById('subject-ranking');
-      rankingContainer.innerHTML = '';
-      
-      // Сортируем предметы по среднему баллу
-      const sortedSubjects = Object.entries(stats.subjectAverages)
-        .map(([subject, data]) => ({
-          subject,
-          average: (data.sum / data.count).toFixed(2),
-          count: data.count
-        }))
-        .sort((a, b) => b.average - a.average);
-      
-      sortedSubjects.forEach((item, index) => {
-        const bar = document.createElement('div');
-        bar.className = 'subject-bar';
-        bar.innerHTML = `
-          <div class="subject-name">${item.subject}</div>
-          <div class="subject-progress">
-            <div class="subject-fill" style="width: ${(item.average / 5) * 100}%"></div>
-          </div>
-          <div class="subject-value">${item.average}</div>
-        `;
-        rankingContainer.appendChild(bar);
-      });
-    }
-
-    function renderRadarChart(stats) {
-      const ctx = document.getElementById('radar_chart').getContext('2d');
-      
-      if (chartInstances.radar) {
-        chartInstances.radar.destroy();
-      }
-      
-      const subjectLabels = Object.keys(stats.subjectAverages);
-      const subjectAverages = subjectLabels.map(subject => 
-        (stats.subjectAverages[subject].sum / stats.subjectAverages[subject].count).toFixed(2)
-      );
-      
-      chartInstances.radar = new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: subjectLabels,
-          datasets: [{
-            label: 'Средний балл',
-            data: subjectAverages,
-            backgroundColor: 'rgba(255, 182, 193, 0.2)',
-            borderColor: 'rgba(255, 182, 193, 1)',
-            borderWidth: 2,
-            pointBackgroundColor: 'rgba(255, 182, 193, 1)',
-            pointBorderColor: '#fff',
-            pointHoverBackgroundColor: '#fff',
-            pointHoverBorderColor: 'rgba(255, 182, 193, 1)'
-          }]
-        },
-        options: {
-          scales: {
-            r: {
-              beginAtZero: true,
-              max: 5,
-              ticks: {
-                stepSize: 1
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            }
-          }
-        }
-      });
-      
-      // Обновляем performance bars
-      const performanceContainer = document.getElementById('subject-performance');
-      performanceContainer.innerHTML = '';
-      
-      subjectLabels.forEach((subject, index) => {
-        const average = subjectAverages[index];
-        const bar = document.createElement('div');
-        bar.className = 'subject-bar';
-        bar.innerHTML = `
-          <div class="subject-name">${subject}</div>
-          <div class="subject-progress">
-            <div class="subject-fill" style="width: ${(average / 5) * 100}%"></div>
-          </div>
-          <div class="subject-value">${average}</div>
-        `;
-        performanceContainer.appendChild(bar);
-      });
-    }
-
-    function renderDoughnutChart(stats) {
-      const ctx = document.getElementById('doughnut_chart').getContext('2d');
-      
-      if (chartInstances.doughnut) {
-        chartInstances.doughnut.destroy();
-      }
-      
-      chartInstances.doughnut = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: ['Отлично (5)', 'Хорошо (4)', 'Удовлетворительно (3)', 'Неудовлетворительно (2)'],
-          datasets: [{
-            data: [
-              stats.gradeDistribution[5],
-              stats.gradeDistribution[4],
-              stats.gradeDistribution[3],
-              stats.gradeDistribution[2]
-            ],
-            backgroundColor: [
-              'rgba(181, 234, 215, 0.8)',
-              'rgba(199, 206, 234, 0.8)',
-              'rgba(255, 218, 193, 0.8)',
-              'rgba(255, 154, 162, 0.8)'
-            ],
-            borderColor: [
-              'rgba(181, 234, 215, 1)',
-              'rgba(199, 206, 234, 1)',
-              'rgba(255, 218, 193, 1)',
-              'rgba(255, 154, 162, 1)'
-            ],
-            borderWidth: 2
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          },
-          cutout: '60%'
-        }
-      });
-    }
-
-    function renderBarChart(stats) {
-      const ctx = document.getElementById('bar_chart').getContext('2d');
-      
-      if (chartInstances.bar) {
-        chartInstances.bar.destroy();
-      }
-      
-      const subjectLabels = Object.keys(stats.subjectAverages);
-      const subjectAverages = subjectLabels.map(subject => 
-        (stats.subjectAverages[subject].sum / stats.subjectAverages[subject].count).toFixed(2)
-      );
-      
-      chartInstances.bar = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: subjectLabels,
-          datasets: [{
-            label: 'Средний балл',
-            data: subjectAverages,
-            backgroundColor: 'rgba(255, 182, 193, 0.7)',
-            borderColor: 'rgba(255, 182, 193, 1)',
-            borderWidth: 1
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 5
-            }
-          },
-          plugins: {
-            legend: {
-              display: false
-            }
-          }
-        }
-      });
-    }
-
-    function renderLineChart(stats) {
-      const ctx = document.getElementById('line_chart').getContext('2d');
-      
-      if (chartInstances.line) {
-        chartInstances.line.destroy();
-      }
-      
-      // Для демонстрации создаем фиктивные данные прогресса
-      const months = ['Сен', 'Окт', 'Ноя', 'Дек', 'Янв', 'Фев'];
-      const progressData = [3.2, 3.5, 3.7, 3.9, 4.1, 4.2];
-      
-      chartInstances.line = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: months,
-          datasets: [{
-            label: 'Средний балл',
-            data: progressData,
-            backgroundColor: 'rgba(181, 234, 215, 0.2)',
-            borderColor: 'rgba(181, 234, 215, 1)',
-            borderWidth: 3,
-            tension: 0.4,
-            fill: true
-          }]
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 5
-            }
-          }
-        }
-      });
-      
-      // Обновляем показатели прогресса
-      document.getElementById('progress-circle').style.setProperty('--fill-percentage', '75%');
-      document.getElementById('progress-value').textContent = '75%';
-      document.getElementById('quality-circle').style.setProperty('--fill-percentage', '68%');
-      document.getElementById('quality-value').textContent = '68%';
-      
-      document.getElementById('improved-count').textContent = '18';
-      document.getElementById('declined-count').textContent = '3';
-      document.getElementById('stable-count').textContent = '24';
-    }
-
-    function renderHeatmapChart(stats) {
-      const ctx = document.getElementById('heatmap_chart').getContext('2d');
-      
-      if (chartInstances.heatmap) {
-        chartInstances.heatmap.destroy();
-      }
-      
-      const subjectLabels = Object.keys(stats.heatmapData);
-      const gradeLabels = ['2', '3', '4', '5'];
-      
-      // Создаем данные для heatmap
-      const heatmapData = [];
-      subjectLabels.forEach(subject => {
-        const subjectData = [];
-        gradeLabels.forEach(grade => {
-          subjectData.push(stats.heatmapData[subject][grade] || 0);
+        fileUploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = 'rgba(255, 182, 193, 0.1)';
         });
-        heatmapData.push(subjectData);
-      });
-      
-      chartInstances.heatmap = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: subjectLabels,
-          datasets: gradeLabels.map((grade, index) => ({
-            label: `Оценка ${grade}`,
-            data: subjectLabels.map(subject => stats.heatmapData[subject][grade] || 0),
-            backgroundColor: [
-              'rgba(255, 154, 162, 0.8)',
-              'rgba(255, 218, 193, 0.8)',
-              'rgba(199, 206, 234, 0.8)',
-              'rgba(181, 234, 215, 0.8)'
-            ][index],
-            borderColor: [
-              'rgba(255, 154, 162, 1)',
-              'rgba(255, 218, 193, 1)',
-              'rgba(199, 206, 234, 1)',
-              'rgba(181, 234, 215, 1)'
-            ][index],
-            borderWidth: 1
-          }))
-        },
-        options: {
-          scales: {
-            x: {
-              stacked: true,
-            },
-            y: {
-              stacked: true,
-              beginAtZero: true
-            }
-          }
-        }
-      });
-      
-      // Обновляем легенду heatmap
-      const legendContainer = document.getElementById('heatmap-legend');
-      legendContainer.innerHTML = '';
-      
-      gradeLabels.forEach((grade, index) => {
-        const item = document.createElement('div');
-        item.className = `heatmap-item heatmap-grade-${grade}`;
-        item.innerHTML = `
-          <div style="font-weight: 600;">Оценка ${grade}</div>
-          <div>${Object.values(stats.heatmapData).reduce((sum, subject) => sum + (subject[grade] || 0), 0)} студентов</div>
-        `;
-        legendContainer.appendChild(item);
-      });
-      
-      // Обновляем дополнительные показатели
-      document.getElementById('group-avg-value').textContent = stats.overallAverage;
-      document.getElementById('group-avg-bar').style.width = `${(stats.overallAverage / 5) * 100}%`;
-      
-      // Находим лучший и слабый предмет
-      const subjectAverages = Object.entries(stats.subjectAverages)
-        .map(([subject, data]) => ({
-          subject,
-          average: (data.sum / data.count).toFixed(2)
-        }))
-        .sort((a, b) => b.average - a.average);
-      
-      if (subjectAverages.length > 0) {
-        const bestSubject = subjectAverages[0];
-        const weakSubject = subjectAverages[subjectAverages.length - 1];
-        
-        document.getElementById('best-subject-value').textContent = `${bestSubject.subject} (${bestSubject.average})`;
-        document.getElementById('best-subject-bar').style.width = `${(bestSubject.average / 5) * 100}%`;
-        
-        document.getElementById('weak-subject-value').textContent = `${weakSubject.subject} (${weakSubject.average})`;
-        document.getElementById('weak-subject-bar').style.width = `${(weakSubject.average / 5) * 100}%`;
-      }
-    }
 
-    function refreshSelectors(){ 
-      const groups = Array.from(new Set(data.map(r=>r.Group))).filter(x=>x); 
-      const groupSelIds = ['stats_group','chart_group']; 
-      groupSelIds.forEach(id=>{ 
-        const el = document.getElementById(id); 
-        if(!el) return; 
-        const val = el.value; 
-        el.innerHTML=''; 
-        const allOpt = document.createElement('option'); 
-        allOpt.value='ALL'; 
-        allOpt.textContent='ALL'; 
-        el.appendChild(allOpt); 
-        groups.forEach(g=>{ 
-          const o=document.createElement('option'); 
-          o.value=g; 
-          o.textContent=g; 
-          el.appendChild(o); 
-        }); 
-        if(val) el.value = val; 
-      });
-      // subjects
-      const subjectSelIds = ['stats_subject','chart_subject']; 
-      subjectSelIds.forEach(id=>{ 
-        const el = document.getElementById(id); 
-        if(!el) return; 
-        const val = el.value; 
-        el.innerHTML=''; 
-        const allOpt = document.createElement('option'); 
-        allOpt.value='ALL'; 
-        allOpt.textContent='ALL'; 
-        el.appendChild(allOpt); 
-        subjects.forEach(s=>{ 
-          const o=document.createElement('option'); 
-          o.value=s; 
-          o.textContent=s; 
-          el.appendChild(o); 
-        }); 
-        if(val) el.value = val; 
-      });
-    }
-
-    function refreshAll(){ 
-      updateSubjectsFromData(); 
-      renderEditSubjects(); 
-      renderTable('table_wrapper'); 
-      renderTable('edit_table_wrapper', true); 
-      refreshSelectors(); 
-      renderStatsTable(); 
-      renderAdvancedCharts(); 
-    }
-
-    function renderStatsTable(){ 
-      const groupSel = document.getElementById('stats_group'); 
-      const subjSel = document.getElementById('stats_subject'); 
-      const rows = computeStats(groupSel.value||'ALL', subjSel.value||'ALL'); 
-      const wrapper = document.getElementById('stats_table_wrapper'); 
-      if(!rows || rows.length===0){ 
-        wrapper.innerHTML='<div style="padding: 1rem; text-align: center; color: var(--gray);">Нет данных для статистики</div>'; 
-        return; 
-      }
-      const table = document.createElement('table'); 
-      table.className = 'table';
-      const thead = document.createElement('thead'); 
-      const hrow = document.createElement('tr'); 
-      ['Subject','Group','Mean','Median','Grade','Count','Percent','Total'].forEach(h=>{ 
-        const th=document.createElement('th'); 
-        th.textContent=h; 
-        hrow.appendChild(th);
-      }); 
-      thead.appendChild(hrow); 
-      const tbody = document.createElement('tbody'); 
-      rows.forEach(r=>{ 
-        const tr=document.createElement('tr'); 
-        ['Subject','Group','Mean','Median','Grade','Count','Percent','Total'].forEach(k=>{ 
-          const td=document.createElement('td'); 
-          td.textContent = r[k]; 
-          tr.appendChild(td); 
-        }); 
-        tbody.appendChild(tr); 
-      }); 
-      table.appendChild(thead); 
-      table.appendChild(tbody); 
-      wrapper.innerHTML=''; 
-      wrapper.appendChild(table);
-    }
-
-    // File input handling
-    document.getElementById('file_input').addEventListener('change', async (e)=>{
-      const f = e.target.files[0]; 
-      if(!f) return; 
-      const name = f.name.toLowerCase();
-      if(name.endsWith('.csv')||name.endsWith('.txt')){
-        const text = await f.text(); 
-        const parsed = parseCSV(text, ','); 
-        data = parsed.map(r=>{ 
-          // ensure keys
-          const obj = {
-            Group: r.Group||r.Class||'', 
-            LastName: r.LastName||'', 
-            FirstName: r.FirstName||'', 
-            Patronymic: r.Patronymic||''
-          };
-          Object.keys(r).forEach(k=>{ 
-            if(!['Group','Class','LastName','FirstName','Patronymic'].includes(k) && r[k]!==undefined) 
-              obj[k]= r[k]; 
-          }); 
-          return obj; 
-        }); 
-        updateSubjectsFromData(); 
-        refreshAll();
-      } else if(name.endsWith('.xlsx')||name.endsWith('.xls')){
-        const ab = await f.arrayBuffer(); 
-        const wb = XLSX.read(ab, {type:'array'}); 
-        const ws = wb.Sheets[wb.SheetNames[0]]; 
-        const json = XLSX.utils.sheet_to_json(ws, {defval: ''}); 
-        data = json.map(r=>{ 
-          const obj = {
-            Group: r.Group||r.Class||'', 
-            LastName: r.LastName||'', 
-            FirstName: r.FirstName||'', 
-            Patronymic: r.Patronymic||''
-          }; 
-          Object.keys(r).forEach(k=>{ 
-            if(!['Group','Class','LastName','FirstName','Patronymic'].includes(k) && r[k]!==undefined) 
-              obj[k]= r[k]; 
-          }); 
-          return obj; 
-        }); 
-        updateSubjectsFromData(); 
-        refreshAll(); 
-      }
-    });
-
-    document.getElementById('add_student').addEventListener('click', addStudent);
-    document.getElementById('update_student').addEventListener('click', updateStudent);
-    document.getElementById('delete_student').addEventListener('click', deleteStudent);
-    document.getElementById('save_csv').addEventListener('click', saveCSV);
-    document.getElementById('export_xlsx').addEventListener('click', exportXLSX);
-
-    // Tabs
-    document.querySelectorAll('.nav-link').forEach(t=> t.addEventListener('click', ()=>{
-      document.querySelectorAll('.nav-link').forEach(x=>x.classList.remove('active')); 
-      t.classList.add('active'); 
-      const sel = t.getAttribute('data-tab'); 
-      document.querySelectorAll('section.card').forEach(s=> s.style.display = (s.id===sel? 'block':'none'));
-      
-      // Обновляем заголовок страницы
-      const pageTitle = document.getElementById('page-title');
-      switch(sel) {
-        case 'upload':
-          pageTitle.textContent = 'Загрузка оценок';
-          break;
-        case 'edit':
-          pageTitle.textContent = 'Редактирование журнала';
-          break;
-        case 'stats_table':
-          pageTitle.textContent = 'Статистика успеваемости';
-          break;
-        case 'stats_chart':
-          pageTitle.textContent = 'Интерактивная аналитика';
-          break;
-        case 'help':
-          pageTitle.textContent = 'Помощь по использованию';
-          break;
-        case 'about':
-          pageTitle.textContent = 'О программе';
-          break;
-      }
-    }));
-
-    // Stats controls
-    document.getElementById('recalc_stats').addEventListener('click', renderStatsTable);
-    document.getElementById('replot').addEventListener('click', renderAdvancedCharts);
-
-    // File input label click
-    document.getElementById('file_upload_area').addEventListener('click', () => {
-      document.getElementById('file_input').click();
-    });
-
-    // Drag and drop functionality
-    const fileUploadArea = document.getElementById('file_upload_area');
-    
-    fileUploadArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      this.style.borderColor = 'var(--primary)';
-      this.style.backgroundColor = 'rgba(255, 182, 193, 0.1)';
-    });
-    
-    fileUploadArea.addEventListener('dragleave', function() {
-      this.style.borderColor = '#e0e0e0';
-      this.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-    });
-    
-    fileUploadArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.style.borderColor = '#e0e0e0';
-      this.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-      
-      if (e.dataTransfer.files.length) {
-        document.getElementById('file_input').files = e.dataTransfer.files;
-        const event = new Event('change');
-        document.getElementById('file_input').dispatchEvent(event);
-      }
-    });
-
-    // Добавляем обработчики для переключения между графиками
-    document.querySelectorAll('.chart-tab').forEach(tab => {
-      tab.addEventListener('click', function() {
-        // Убираем активный класс у всех вкладок
-        document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
-        // Добавляем активный класс текущей вкладке
-        this.classList.add('active');
-        
-        // Скрываем все графики
-        document.querySelectorAll('.charts-container').forEach(container => {
-          container.style.display = 'none';
+        fileUploadArea.addEventListener('dragleave', function () {
+            this.style.borderColor = '#e0e0e0';
+            this.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
         });
-        
-        // Показываем выбранный график
-        currentChartType = this.getAttribute('data-chart');
-        document.getElementById(`${currentChartType}-chart`).style.display = 'grid';
-        
-        // Перерисовываем графики
+
+        fileUploadArea.addEventListener('drop', function (e) {
+            e.preventDefault();
+            this.style.borderColor = '#e0e0e0';
+            this.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+
+            if (e.dataTransfer.files.length) {
+                document.getElementById('file_input').files = e.dataTransfer.files;
+                const event = new Event('change');
+                document.getElementById('file_input').dispatchEvent(event);
+            }
+        });
+
+        // Добавляем обработчики для переключения между графиками
+        document.querySelectorAll('.chart-tab').forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Убираем активный класс у всех вкладок
+                document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+                // Добавляем активный класс текущей вкладке
+                this.classList.add('active');
+
+                // Скрываем все графики
+                document.querySelectorAll('.charts-container').forEach(container => {
+                    container.style.display = 'none';
+                });
+
+                // Показываем выбранный график
+                currentChartType = this.getAttribute('data-chart');
+                document.getElementById(`${currentChartType}-chart`).style.display = 'grid';
+
+                // Перерисовываем графики
+                renderAdvancedCharts();
+            });
+        });
+
+        // Обновляем обработчики изменения фильтров
+        document.getElementById('chart_group').addEventListener('change', renderAdvancedCharts);
+        document.getElementById('chart_subject').addEventListener('change', renderAdvancedCharts);
+
+        // initial
+        updateSubjectsFromData();
+        renderEditSubjects();
+        renderTable('table_wrapper');
+        renderTable('edit_table_wrapper', true);
+        refreshSelectors();
         renderAdvancedCharts();
-      });
-    });
-
-    // Обновляем обработчики изменения фильтров
-    document.getElementById('chart_group').addEventListener('change', renderAdvancedCharts);
-    document.getElementById('chart_subject').addEventListener('change', renderAdvancedCharts);
-
-    // initial
-    updateSubjectsFromData(); 
-    renderEditSubjects(); 
-    renderTable('table_wrapper'); 
-    renderTable('edit_table_wrapper', true); 
-    refreshSelectors();
-    renderAdvancedCharts();
-  </script>
+    </script>
 </body>
 </html>
+
+
+//РАДАР-ГРАФИК (Радар успеваемости)
+Найдите функцию renderRadarChart и замените цвета:
+
+javascript
+// БЫЛО:
+backgroundColor: 'rgba(255, 182, 193, 0.2)',
+borderColor: 'rgba(255, 182, 193, 1)',
+pointBackgroundColor: 'rgba(255, 182, 193, 1)',
+
+// ЗАМЕНИТЕ НА (синие тона):
+backgroundColor: 'rgba(100, 149, 237, 0.2)',      // Голубой с прозрачностью
+borderColor: 'rgba(70, 130, 180, 1)',             // Стальной синий
+pointBackgroundColor: 'rgba(30, 144, 255, 1)',    // Синий Доджерс
+
+КРУГОВАЯ ДИАГРАММА (Распределение оценок)
+В функции renderDoughnutChart замените цвета:
+
+javascript
+// БЫЛО:
+backgroundColor: [
+  'rgba(181, 234, 215, 0.8)',  // Зеленый
+  'rgba(199, 206, 234, 0.8)',  // Голубой
+  'rgba(255, 218, 193, 0.8)',  // Оранжевый
+  'rgba(255, 154, 162, 0.8)'   // Красный
+]
+
+// ЗАМЕНИТЕ НА (фиолетовые тона):
+backgroundColor: [
+  'rgba(147, 112, 219, 0.8)',  // Фиолетовый средний
+  'rgba(186, 85, 211, 0.8)',   // Орхидея
+  'rgba(138, 43, 226, 0.8)',   // Фиолетовый синий
+  'rgba(75, 0, 130, 0.8)'      // Индиго
+]
+
+
+СТОЛБЧАТАЯ ДИАГРАММА (Сравнение предметов)
+В функции renderBarChart измените:
+
+javascript
+// БЫЛО:
+backgroundColor: 'rgba(255, 182, 193, 0.7)',
+
+// ЗАМЕНИТЕ НА (зеленые тона):
+backgroundColor: 'rgba(60, 179, 113, 0.7)',  // Зеленый морской
+
+ЛИНЕЙНЫЙ ГРАФИК (Динамика успеваемости)
+В функции renderLineChart замените:
+
+javascript
+// БЫЛО:
+backgroundColor: 'rgba(181, 234, 215, 0.2)',
+borderColor: 'rgba(181, 234, 215, 1)',
+
+// ЗАМЕНИТЕ НА (оранжевые тона):
+backgroundColor: 'rgba(255, 165, 0, 0.2)',    // Оранжевый с прозрачностью
+borderColor: 'rgba(255, 140, 0, 1)',          // Темно-оранжевый
+
+
+HEATMAP (Тепловая карта)
+В функции renderHeatmapChart измените цвета для каждой оценки:
+
+javascript
+// БЫЛО:
+backgroundColor: [
+  'rgba(255, 154, 162, 0.8)',  // 2 - красный
+  'rgba(255, 218, 193, 0.8)',  // 3 - оранжевый
+  'rgba(199, 206, 234, 0.8)',  // 4 - голубой
+  'rgba(181, 234, 215, 0.8)'   // 5 - зеленый
+]
+
+// ЗАМЕНИТЕ НА (золотые тона):
+backgroundColor: [
+  'rgba(205, 127, 50, 0.8)',   // 2 - бронзовый
+  'rgba(218, 165, 32, 0.8)',   // 3 - золотой
+  'rgba(255, 215, 0, 0.8)',    // 4 - золотой яркий
+  'rgba(255, 223, 0, 0.8)'     // 5 - желтый
+]
+
+ЧЁРНО_БЕЛЫЕ СТРОКИ 570
+.table tbody tr:nth-child(odd) {
+    background-color: #ffffff; /* Белый цвет для нечетных строк */
+    color: #000000; /* Черный текст */
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #000000; /* Черный цвет для четных строк */
+    color: #ffffff; /* Белый текст */
+}
+
+
+ШАХМАТНАЯ ТАБЛИЦА
+* Шахматное окрашивание ячеек таблицы */
+.table tbody tr:nth-child(odd) td:nth-child(odd),
+.table tbody tr:nth-child(even) td:nth-child(even) {
+    background-color: #ffffff; /* Белые ячейки */
+    color: #000000; /* Черный текст */
+}
+
+.table tbody tr:nth-child(odd) td:nth-child(even),
+.table tbody tr:nth-child(even) td:nth-child(odd) {
+    background-color: #000000; /* Черные ячейки */
+    color: #ffffff; /* Белый текст */
+}
+
+
+ТОЛЬКО ТАБЛИЦА РЕДАКТИРОВАНИЯ
+CSS-код:
+css
+/* Шахматное окрашивание только для таблицы редактирования */
+#edit_table_wrapper table tbody tr:nth-child(odd) td:nth-child(odd),
+#edit_table_wrapper table tbody tr:nth-child(even) td:nth-child(even) {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#edit_table_wrapper table tbody tr:nth-child(odd) td:nth-child(even),
+#edit_table_wrapper table tbody tr:nth-child(even) td:nth-child(odd) {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+ТОЛЬКО ТАБЛИЦА ЗАГРУЗКИ
+CSS-код:
+css
+/* Шахматное окрашивание только для таблицы загрузки */
+#table_wrapper table tbody tr:nth-child(odd) td:nth-child(odd),
+#table_wrapper table tbody tr:nth-child(even) td:nth-child(even) {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#table_wrapper table tbody tr:nth-child(odd) td:nth-child(even),
+#table_wrapper table tbody tr:nth-child(even) td:nth-child(odd) {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+
+ТОЛЬКО ТАБЛИЦА СТАТИСТИКИ
+CSS-код:
+css
+/* Шахматное окрашивание только для таблицы статистики */
+#stats_table_wrapper table tbody tr:nth-child(odd) td:nth-child(odd),
+#stats_table_wrapper table tbody tr:nth-child(even) td:nth-child(even) {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#stats_table_wrapper table tbody tr:nth-child(odd) td:nth-child(even),
+#stats_table_wrapper table tbody tr:nth-child(even) td:nth-child(odd) {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+
+tr:nth-child(odd) td:nth-child(odd) - нечетные ячейки в нечетных строках
+
+tr:nth-child(even) td:nth-child(even) - четные ячейки в четных строках
+
+tr:nth-child(odd) td:nth-child(even) - четные ячейки в нечетных строках
+
+tr:nth-child(even) td:nth-child(odd) - нечетные ячейки в четных строках
+
+
+ПОДСВЕТКА СТРОКИ УЖЕ В КОДЕ ~572
+.table tbody tr:hover {
+  background: rgba(181, 234, 215, 0.2);  /* Светло-зеленый фон при наведении */
+  transform: scale(1.01);                 /* Легкое увеличение строки */
+}
+(/* На другие варианты: */
+background: rgba(255, 182, 193, 0.2);    /* Розовый */
+background: rgba(199, 206, 234, 0.2);    /* Голубой */
+background: rgba(255, 218, 193, 0.2);    /* Оранжевый */
+background: rgba(255, 255, 0, 0.1);      /* Желтый */)
+
+ПОДСВЕТКА ЯЧЕЙКИ
+/* Добавляем подсветку отдельной ячейки при наведении */
+.table tbody td:hover {
+  background: rgba(181, 234, 215, 0.4) !important;
+  transform: scale(1.02);
+  box-shadow: 0 0 10px rgba(181, 234, 215, 0.5);
+  z-index: 1;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+(background: rgba(255, 182, 193, 0.6) !important;  /* Розовый цвет */
+  transform: scale(1.05);                           /* Увеличение на 5% */
+  box-shadow: 0 0 15px rgba(255, 182, 193, 0.8);   /* Более яркая тень */
+  z-index: 2;                                       /* Выше над другими */
+  position: relative;
+  transition: all 0.5s ease-in-out;                 /* Медленнее (0.5с) */
+})
